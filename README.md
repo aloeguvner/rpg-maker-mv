@@ -9,7 +9,7 @@ On the page of each plugin, locate the button labeled "Raw" in the upper-right. 
 
 [Item and Skill Sort Priority](https://github.com/aloeguvner/rpg-maker-mv/blob/master/plugins/ALOE_ItemSkillSortPriority.js)
 
-[Events as Counters and Ladders](https://github.com/aloeguvner/rpg-maker-mv/blob/master/plugins/ALOE_EventLadders.js)
+[Events as Counters and Ladders](https://github.com/aloeguvner/rpg-maker-mv/blob/master/plugins/ALOE_Event_Ladder_Counter.js)
 
 [YEP Menu Parameter Control](https://github.com/aloeguvner/rpg-maker-mv/blob/master/plugins/ALOE_YEP_MenuParameterControl.js)
 

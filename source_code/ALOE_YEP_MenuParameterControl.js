@@ -6,7 +6,7 @@
 
 //=============================================================================
 /*:
-* @plugindesc v1.0.0 Extension to YEP menus to allow
+* @plugindesc v1.1.0 Extension to YEP menus to allow
 * the developer to choose which actor parameters are shown in these menus.
 * @author Aloe Guvner
 * 
@@ -209,6 +209,13 @@
 * ============================================================================
 * Change Log
 * ============================================================================
+*
+* Version 1.1.0:
+* Released updated version that allows XParams and SParams in these menus:
+* -EquipCore
+* -ClassChangeCore
+* -ItemCore
+* -ShopMenuCore
 *
 * Version 1.0.0:
 * Released initial version that extends:

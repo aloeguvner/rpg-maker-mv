@@ -23,9 +23,8 @@
 * 
 * @param equipParams
 * @text Equip Screen Comparison Parameters
-* @type number[]
-* @default ["0","1","2","3","4","5","6","7"]
-* @desc The parameters to show in the equip screen comparison window.
+* @type struct<complexParams>[]
+* @desc Parameters to show in the equip screen comparison window.
 * See the help section for the number codes to use.
 * @parent ===MenuEquipScreen===
 * 
@@ -88,8 +87,7 @@
 * 
 * @param classParams
 * @text Class Change Parameters
-* @type number[]
-* @default ["0","1","2","3","4","5","6","7"]
+* @type struct<complexParams>[]
 * @desc The parameters to show in the stat compare window for class changes.
 * See the help section for the number codes to use.
 * @parent ===ClassChangeCompareWindow===
@@ -107,7 +105,7 @@
 * 
 * @param itemParams
 * @text Item Info Window Parameters
-* @type number[]
+* @type struct<complexParams>[]
 * @default ["0","1","2","3","4","5","6","7"]
 * @desc The parameters to show in the item info window.
 * See the help section for the number codes to use.
@@ -126,7 +124,7 @@
 * 
 * @param shopItemParams
 * @text Shop Info Window Parameters
-* @type number[]
+* @type struct<complexParams>[]
 * @default ["0","1","2","3","4","5","6","7"]
 * @desc The parameters to show in the shop item info window.
 * See the help section for the number codes to use.
@@ -134,12 +132,14 @@
 *
 * @param shopActorParams
 * @text Shop Info Window Parameters
-* @type number[]
+* @type struct<complexParams>[]
 * @default ["0","1","2","3","4","5","6","7"]
 * @desc The parameters to show in the shop actor info window.
 * See the help section for the number codes to use.
 * @parent ===ShopInfoWindow===
 *
+
+/*
 * @help
 * 
 * Extends:
@@ -155,8 +155,7 @@
 * 
 * Installation: Install below all YEP plugins.
 * 
-* The following values can be used for the Equip, Status(General) and
-* Status(Parameters) screens.
+* The following values can be used for normal parameters.
 * 
 * 0 --> Max HP (MHP)
 * 1 --> Max MP (MMP)
@@ -166,6 +165,32 @@
 * 5 --> Magic Defense Power (MDF)
 * 6 --> Agility (AGI)
 * 7 --> Luck (LUK)
+*
+* The following values can be used for ex parameters (xParams)
+*
+* 0 --> Hit Rate (HIT)
+* 1 --> Evasion Rate (EVA)
+* 2 --> Critical Rate (CRI)
+* 3 --> Critical Evasion (CEV)
+* 4 --> Magic Evasion (MEV)
+* 5 --> Magic Reflection (MRF)
+* 6 --> Counter Attack (CNT)
+* 7 --> HP Regeneration (HRG)
+* 8 --> MP Regeneration (MRG)
+* 9 --> TP Regeneration (TRG)
+* 
+* The following values can be used for special parameters (sParams)
+*
+* 0 --> Target Rate (TGR)
+* 1 --> Guard Effect (GRD)
+* 2 --> Recovery Effect (REC)
+* 3 --> Pharmacology (PHA)
+* 4 --> MP Cost Rate (MCR)
+* 5 --> TP Charge Rate (TCR)
+* 6 --> Physical Damage Rate (PDR)
+* 7 --> Magical Damage Rate (MDR)
+* 8 --> Floor Damage Rate (FDR)
+* 9 --> Experience Rate (EXR)
 * 
 * The order of these is taken into account, allowing the developer to 
 * change the order in which these are displayed.
@@ -195,8 +220,33 @@
 * -ShopMenuCore
 * 
 */
-//=============================================================================
 
+
+/*~struct~complexParams:
+ * @param paramType
+ * @text Parameter Type
+ * @type select
+ * @option Parameter
+ * @value param
+ * @option Ex-Parameter
+ * @value xparam
+ * @option Sp-Parameter
+ * @value sparam
+ * @desc The type of parameter to display.
+ * @default param
+ * 
+ * @param paramId
+ * @text Parameter ID
+ * @type number
+ * @min 0
+ * @max 9
+ * @desc The parameter to show.
+ * See the help section for the number codes to use.
+*/
+
+
+//=============================================================================
+var Parameters = {};
 (function () {
 
   "use strict";
@@ -222,16 +272,135 @@
   };
 
   //=============================================================================
+  // Create utility functions to return Ex-Paramaters and Sp-Parameters names.
+  //=============================================================================
+
+  Utils.getXParamName = function (paramId) {
+    switch (paramId) {
+      case 0:
+        return "Hit Rate";
+      case 1:
+        return "Evasion Rate";
+      case 2:
+        return "Critical Rate";
+      case 3:
+        return "Critical Evasion";
+      case 4:
+        return "Magic Evasion";
+      case 5:
+        return "Magic Reflection";
+      case 6:
+        return "Counter Attack";
+      case 7:
+        return "HP Regeneration";
+      case 8:
+        return "MP Regeneration";
+      case 9:
+        return "TP Regeneration";
+    }
+  };
+
+  Utils.getSParamName = function (paramId) {
+    switch (paramId) {
+      case 0:
+        return "Target Rate";
+      case 1:
+        return "Guard Effect";
+      case 2:
+        return "Recovery Effect";
+      case 3:
+        return "Pharmacology";
+      case 4:
+        return "MP Cost Rate";
+      case 5:
+        return "TP Charge Rate";
+      case 6:
+        return "Physical Damage Rate";
+      case 7:
+        return "Magical Damage Rate";
+      case 8:
+        return "Floor Damage Rate";
+      case 9:
+        return "Experience Rate";
+    }
+  };
+
+  Utils.getParamName = function (paramId, paramType) {
+    switch (paramType) {
+      case "param":
+        return TextManager.param(paramId);
+      case "xparam":
+        return Utils.getXParamName(paramId);
+      case "sparam":
+        return Utils.getSParamName(paramId);
+    }
+  };
+
+  //=============================================================================
+  // Create utility functions for Ex-Paramaters and Sp-Parameters values (actors).
+  //=============================================================================
+
+  Utils.getXParamValue = function (paramId, actor) {
+    if (actor) {
+      return Math.round(actor.xparam(paramId) * 100);
+    }
+  };
+
+  Utils.getSParamValue = function (paramId, actor) {
+    if (actor) {
+      return Math.round(actor.sparam(paramId) * 100);
+    }
+  };
+
+  Utils.getParamValue = function (paramId, paramType, actor) {
+    switch (paramType) {
+      case "param":
+        return actor.param(paramId);
+      case "xparam":
+        return Utils.getXParamValue(paramId, actor);
+      case "sparam":
+        return Utils.getSParamValue(paramId, actor);
+    }
+  };
+
+  //=============================================================================
+  // Create utility functions for Ex-Paramaters and Sp-Parameters values (items).
+  //=============================================================================
+
+  Utils.traitsWithId = function (code, id, traits) {
+    return traits.filter(function (trait) {
+      return trait.code === code && trait.dataId === id;
+    });
+  };
+
+  Utils.traitsPi = function (code, id, traits) {
+    return this.traitsWithId(code, id, traits).reduce(function (r, trait) {
+      return r * trait.value;
+    }, 1);
+  };
+
+  Utils.getItemParameterValue = function (paramId, paramType, item) {
+    if (paramType === "param") {
+      return item.params[paramId];
+    } else if (paramType === "xparam") {
+      return Utils.traitsPi(Game_BattlerBase.TRAIT_XPARAM, paramId, item.traits) * 100;
+    } else if (paramType === "sparam") {
+      return Utils.traitsPi(Game_BattlerBase.TRAIT_SPARAM, paramId, item.traits) * 100 - 100;
+    }
+  };
+
+  //=============================================================================
   // Parameters
   //=============================================================================
   // Read and parse parameters into a locally scoped Parameters object.
   //=============================================================================
 
-  var Parameters = {};
+
 
   Object.keys(PluginManager.parameters("ALOE_YEP_MenuParameterControl")).forEach(function (a) {
     return Parameters[a] = Utils.recursiveParse(PluginManager.parameters("ALOE_YEP_MenuParameterControl")[a]);
   });
+
 
   //=============================================================================
   // Equip Menu Changes
@@ -250,8 +419,10 @@
         this._arrowWidth = this.textWidth('\u2192' + ' ');
         var buffer = this.textWidth(' ');
         for (var i = 0; i < Parameters.equipParams.length; i++) {
-          var value1 = this.textWidth(TextManager.param(Parameters.equipParams[i]));
-          var value2 = this.textWidth(Yanfly.Util.toGroup(this._actor.paramMax(Parameters.equipParams[i])));
+          var paramId = Parameters.equipParams[i].paramId;
+          var paramType = Parameters.equipParams[i].paramType;
+          var value1 = this.textWidth(Utils.getParamName(paramId, paramType))
+          var value2 = this.textWidth(Yanfly.Util.toGroup(this._actor.paramMax(paramId)));
           this._paramNameWidth = Math.max(value1, this._paramNameWidth);
           this._paramValueWidth = Math.max(value2, this._paramValueWidth);
         }
@@ -267,8 +438,67 @@
         this.contents.clear();
         if (!this._actor) return;
         for (var i = 0; i < Parameters.equipParams.length; i++) {
-          this.drawItem(0, this.lineHeight() * i, Parameters.equipParams[i]);
+          this.drawItem(0, this.lineHeight() * i, Parameters.equipParams[i].paramId, Parameters.equipParams[i].paramType);
         }
+      };
+
+      Window_StatCompare.prototype.drawItem = function (x, y, paramId, paramType) {
+        this.drawDarkRect(x, y, this.contents.width, this.lineHeight());
+        this.drawParamName(y, paramId, paramType);
+        this.drawCurrentParam(y, paramId, paramType);
+        this.drawRightArrow(y);
+        if (!this._tempActor) return;
+        this.drawNewParam(y, paramId, paramType);
+        this.drawParamDifference(y, paramId, paramType);
+      };
+
+      Window_StatCompare.prototype.drawParamName = function (y, paramId, paramType) {
+        var x = this.textPadding();
+        this.changeTextColor(this.systemColor());
+        var paramName = Utils.getParamName(paramId, paramType);
+        this.drawText(paramName, x, y, this._paramNameWidth);
+      };
+
+      Window_StatCompare.prototype.drawCurrentParam = function (y, paramId, paramType) {
+        var x = this.contents.width - this.textPadding();
+        x -= this._paramValueWidth * 2 + this._arrowWidth + this._bonusValueWidth;
+        this.resetTextColor();
+        var actorparam = Yanfly.Util.toGroup(Utils.getParamValue(paramId, paramType, this._actor));
+        if (paramType === "xparam" || paramType === "sparam") {
+          actorparam += "%";
+        }
+        this.drawText(actorparam, x, y, this._paramValueWidth, 'right');
+      };
+
+      Window_StatCompare.prototype.drawNewParam = function (y, paramId, paramType) {
+        var x = this.contents.width - this.textPadding();
+        x -= this._paramValueWidth + this._bonusValueWidth;
+        var newValue = Utils.getParamValue(paramId, paramType, this._tempActor);
+        var diffvalue = newValue - this.getCurrentParamValue(paramId, paramType);
+        var actorparam = Yanfly.Util.toGroup(newValue);
+        if (paramType === "xparam" || paramType === "sparam") {
+          actorparam += "%";
+        }
+        this.changeTextColor(this.paramchangeTextColor(diffvalue));
+        this.drawText(actorparam, x, y, this._paramValueWidth, 'right');
+      };
+
+
+      Window_StatCompare.prototype.drawParamDifference = function (y, paramId, paramType) {
+        var x = this.contents.width - this.textPadding();
+        x -= this._bonusValueWidth;
+        var newValue = Utils.getParamValue(paramId, paramType, this._tempActor);
+        var diffvalue = newValue - Utils.getParamValue(paramId, paramType, this._actor);
+        if (diffvalue === 0) return;
+        var actorparam = Yanfly.Util.toGroup(newValue);
+        this.changeTextColor(this.paramchangeTextColor(diffvalue));
+        var text = Yanfly.Util.toGroup(diffvalue);
+        if (diffvalue > 0) {
+          text = ' (+' + text + ')';
+        } else {
+          text = ' (' + text + ')';
+        }
+        this.drawText(text, x, y, this._bonusValueWidth, 'left');
       };
 
       //=============================================================================
@@ -473,9 +703,11 @@
         this._paramValueWidth = 0;
         this._arrowWidth = this.textWidth('\u2192' + ' ');
         var buffer = this.textWidth(' ');
-        for (var i = 0; i < Parameters.equipParams.length; i++) {
-          var value1 = this.textWidth(TextManager.param(Parameters.classParams[i]));
-          var value2 = this.textWidth(Yanfly.Util.toGroup(this._actor.paramMax(Parameters.classParams[i])));
+        for (var i = 0; i < Parameters.classParams.length; i++) {
+          var paramId = Parameters.classParams[i].paramId;
+          var paramType = Parameters.classParams[i].paramType;
+          var value1 = this.textWidth(Utils.getParamName(paramId, paramType))
+          var value2 = this.textWidth(Yanfly.Util.toGroup(this._actor.paramMax(paramId)));
           this._paramNameWidth = Math.max(value1, this._paramNameWidth);
           this._paramValueWidth = Math.max(value2, this._paramValueWidth);
         }
@@ -491,8 +723,67 @@
         this.contents.clear();
         if (!this._actor) return;
         for (var i = 0; i < Parameters.classParams.length; i++) {
-          this.drawItem(0, this.lineHeight() * i, Parameters.classParams[i]);
+          this.drawItem(0, this.lineHeight() * i, Parameters.classParams[i].paramId, Parameters.classParams[i].paramType);
         }
+      };
+
+      Window_StatCompare.prototype.drawItem = function (x, y, paramId, paramType) {
+        this.drawDarkRect(x, y, this.contents.width, this.lineHeight());
+        this.drawParamName(y, paramId, paramType);
+        this.drawCurrentParam(y, paramId, paramType);
+        this.drawRightArrow(y);
+        if (!this._tempActor) return;
+        this.drawNewParam(y, paramId, paramType);
+        this.drawParamDifference(y, paramId, paramType);
+      };
+
+      Window_StatCompare.prototype.drawParamName = function (y, paramId, paramType) {
+        var x = this.textPadding();
+        this.changeTextColor(this.systemColor());
+        var paramName = Utils.getParamName(paramId, paramType);
+        this.drawText(paramName, x, y, this._paramNameWidth);
+      };
+
+      Window_StatCompare.prototype.drawCurrentParam = function (y, paramId, paramType) {
+        var x = this.contents.width - this.textPadding();
+        x -= this._paramValueWidth * 2 + this._arrowWidth + this._bonusValueWidth;
+        this.resetTextColor();
+        var actorparam = Yanfly.Util.toGroup(Utils.getParamValue(paramId, paramType, this._actor));
+        if (paramType === "xparam" || paramType === "sparam") {
+          actorparam += "%";
+        }
+        this.drawText(actorparam, x, y, this._paramValueWidth, 'right');
+      };
+
+      Window_StatCompare.prototype.drawNewParam = function (y, paramId, paramType) {
+        var x = this.contents.width - this.textPadding();
+        x -= this._paramValueWidth + this._bonusValueWidth;
+        var newValue = Utils.getParamValue(paramId, paramType, this._tempActor);
+        var diffvalue = newValue - this.getCurrentParamValue(paramId, paramType);
+        var actorparam = Yanfly.Util.toGroup(newValue);
+        if (paramType === "xparam" || paramType === "sparam") {
+          actorparam += "%";
+        }
+        this.changeTextColor(this.paramchangeTextColor(diffvalue));
+        this.drawText(actorparam, x, y, this._paramValueWidth, 'right');
+      };
+
+
+      Window_StatCompare.prototype.drawParamDifference = function (y, paramId, paramType) {
+        var x = this.contents.width - this.textPadding();
+        x -= this._bonusValueWidth;
+        var newValue = Utils.getParamValue(paramId, paramType, this._tempActor);
+        var diffvalue = newValue - Utils.getParamValue(paramId, paramType, this._actor);
+        if (diffvalue === 0) return;
+        var actorparam = Yanfly.Util.toGroup(newValue);
+        this.changeTextColor(this.paramchangeTextColor(diffvalue));
+        var text = Yanfly.Util.toGroup(diffvalue);
+        if (diffvalue > 0) {
+          text = ' (+' + text + ')';
+        } else {
+          text = ' (' + text + ')';
+        }
+        this.drawText(text, x, y, this._bonusValueWidth, 'left');
       };
 
       //=============================================================================
@@ -521,15 +812,22 @@
           rect.width = this.contents.width / 2;
         }
         for (var i = 0; i < Parameters.itemParams.length; i++) {
+          var paramId = Parameters.itemParams[i].paramId;
+          var paramType = Parameters.itemParams[i].paramType;
           rect = this.getRectPosition(rect, i);
           var dx = rect.x + this.textPadding();
           var dw = rect.width - this.textPadding() * 2;
           this.changeTextColor(this.systemColor());
-          this.drawText(TextManager.param(Parameters.itemParams[i]), dx, rect.y, dw);
-          this.changeTextColor(this.paramchangeTextColor(item.params[Parameters.itemParams[i]]));
-          var text = Yanfly.Util.toGroup(item.params[Parameters.itemParams[i]]);
-          if (item.params[i] >= 0) text = '+' + text;
-          if (text === '+0') this.changePaintOpacity(false);
+          this.drawText(Utils.getParamName(paramId, paramType), dx, rect.y, dw);
+          this.changeTextColor(this.paramchangeTextColor(Utils.getItemParameterValue(paramId, paramType, item)));
+          var text = Yanfly.Util.toGroup(Utils.getItemParameterValue(paramId, paramType, item));
+          if (paramType === "xparam" || paramType === "sparam") {
+            text += "%";
+          }
+          if (Utils.getItemParameterValue(paramId, paramType, item) >= 0) {
+            text = '+' + text;
+          }
+          if (text === '+0' || text === "*100%") this.changePaintOpacity(false);
           this.drawText(text, dx, rect.y, dw, 'right');
           this.changePaintOpacity(true);
         }
@@ -561,15 +859,22 @@
           rect.width = this.contents.width / 2;
         }
         for (var i = 0; i < Parameters.shopItemParams.length; ++i) {
+          var paramId = Parameters.shopItemParams[i].paramId;
+          var paramType = Parameters.shopItemParams[i].paramType;
           rect = this.getRectPosition(rect, i);
           var dx = rect.x + this.textPadding();
           var dw = rect.width - this.textPadding() * 2;
           this.changeTextColor(this.systemColor());
-          this.drawText(TextManager.param(Parameters.shopItemParams[i]), dx, rect.y, dw);
-          this.changeTextColor(this.paramchangeTextColor(item.params[Parameters.shopItemParams[i]]));
-          var text = Yanfly.Util.toGroup(item.params[Parameters.shopItemParams[i]]);
-          if (item.params[Parameters.shopItemParams[i]] >= 0) text = '+' + text;
-          if (text === '+0') this.changePaintOpacity(false);
+          this.drawText(Utils.getParamName(paramId, paramType), dx, rect.y, dw);
+          this.changeTextColor(this.paramchangeTextColor(Utils.getItemParameterValue(paramId, paramType, item)));
+          var text = Yanfly.Util.toGroup(Utils.getItemParameterValue(paramId, paramType, item));
+          if (paramType === "xparam" || paramType === "sparam") {
+            text += "%";
+          }
+          if (Utils.getItemParameterValue(paramId, paramType, item) >= 0) {
+            text = '+' + text;
+          }
+          if (text === '+0' || text === "*100%") this.changePaintOpacity(false);
           this.drawText(text, dx, rect.y, dw, 'right');
           this.changePaintOpacity(true);
         }
@@ -584,17 +889,35 @@
         var item1 = this.currentEquippedItem(actor, this._item.etypeId);
         var canEquip = actor.canEquip(this._item);
         for (var i = 0; i < Parameters.shopActorParams.length; ++i) {
+          var paramId = Parameters.shopActorParams[i].paramId;
+          var paramType = Parameters.shopActorParams[i].paramType;
           this.changePaintOpacity(true);
           var rect = this.getRectPosition(i);
           rect.x += this.textPadding();
           rect.width -= this.textPadding() * 2;
           this.changeTextColor(this.systemColor());
-          var text = TextManager.param(Parameters.shopActorParams[i]);
+          var text = Utils.getParamName(paramId, paramType);
           this.drawText(text, rect.x, rect.y, rect.width);
           if (!canEquip) this.drawActorCantEquip(actor, rect);
-          if (canEquip) this.drawActorChange(actor, rect, item1, Parameters.shopActorParams[i]);
+          if (canEquip) this.drawActorChange(actor, rect, item1, paramId, paramType);
         }
         this.changePaintOpacity(true);
+      };
+
+      Window_ShopStatus.prototype.drawActorChange = function (actor, rect, item1, paramId, paramType) {
+        var change = Utils.getItemParameterValue(paramId, paramType, this._item);
+        change -= (item1 ? Utils.getItemParameterValue(paramId, paramType, item1) : 0);
+        this.changePaintOpacity(change !== 0);
+        this.changeTextColor(this.paramchangeTextColor(change));
+        if (paramType === "param") {
+          var text = (change > 0 ? '+' : '') + Yanfly.Util.toGroup(change);
+        } else {
+          var text = (change >= 0 ? '+' : '') + Yanfly.Util.toGroup(change);
+        }
+        if (paramType === "xparam" || paramType === "sparam") {
+          text += "%";
+        }
+        this.drawText(text, rect.x, rect.y, rect.width, 'right');
       };
 
       //=============================================================================

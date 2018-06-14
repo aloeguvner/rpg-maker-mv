@@ -253,7 +253,7 @@
 */
 
 //=============================================================================
-var Parameters = {};
+
 (function () {
 
   "use strict";
@@ -402,6 +402,7 @@ var Parameters = {};
   // Read and parse parameters into a locally scoped Parameters object.
   //=============================================================================
 
+  var Parameters = {};
 
   Object.keys(PluginManager.parameters("ALOE_YEP_MenuParameterControl")).forEach(function (a) {
     return Parameters[a] = Utils.recursiveParse(PluginManager.parameters("ALOE_YEP_MenuParameterControl")[a]);

@@ -8,9 +8,27 @@
 
 //=============================================================================
 /*:
-* @plugindesc v1.1.0 Extension to YEP menus to allow
+* @plugindesc v1.1.1 Extension to YEP menus to allow
 * the developer to choose which actor parameters are shown in these menus.
 * @author Aloe Guvner
+*
+* @param ===Parameter Labels===
+*
+* @param xparamLabels
+* @text Ex-Parameter Labels
+* @desc Names of the Ex-Params that will appear
+* in the menus. See help section for defaults.
+* @type text[]
+* @default ["Hit Rate","Evasion Rate","Critical Rate","Critical Evasion","Magic Evasion","Magic Reflection","Counter Attack","HP Regeneration","MP Regeneration","TP Regeneration"]
+* @parent ===Parameter Labels===
+*
+* @param sparamLabels
+* @text Sp-Parameter Labels
+* @desc Names of the Sp-Params that will appear
+* in the menus. See help section for defaults.
+* @type text[]
+* @default ["Target Rate","Guard Effect","Recovery Effect","Pharmacology","MP Cost Rate","TP Charge Rate","Physical Damage Rate","Magical Damage Rate","Floor Damage Rate","Experience Rate"]
+* @parent ===Parameter Labels===
 * 
 * @param ===MenuEquipScreen===
 * @desc Menu Equip Screen
@@ -28,6 +46,7 @@
 * @type struct<complexParams>[]
 * @desc Parameters to show in the equip screen comparison window.
 * See the help section for the number codes to use.
+* @default ["{\"paramType\":\"param\",\"paramId\":\"0\"}","{\"paramType\":\"param\",\"paramId\":\"1\"}","{\"paramType\":\"param\",\"paramId\":\"2\"}","{\"paramType\":\"param\",\"paramId\":\"3\"}","{\"paramType\":\"param\",\"paramId\":\"4\"}","{\"paramType\":\"param\",\"paramId\":\"5\"}","{\"paramType\":\"param\",\"paramId\":\"6\"}","{\"paramType\":\"param\",\"paramId\":\"7\"}"]
 * @parent ===MenuEquipScreen===
 * 
 * @param ===MenuStatusScreen===
@@ -92,6 +111,7 @@
 * @type struct<complexParams>[]
 * @desc The parameters to show in the stat compare window for class changes.
 * See the help section for the number codes to use.
+* @default ["{\"paramType\":\"param\",\"paramId\":\"0\"}","{\"paramType\":\"param\",\"paramId\":\"1\"}","{\"paramType\":\"param\",\"paramId\":\"2\"}","{\"paramType\":\"param\",\"paramId\":\"3\"}","{\"paramType\":\"param\",\"paramId\":\"4\"}","{\"paramType\":\"param\",\"paramId\":\"5\"}","{\"paramType\":\"param\",\"paramId\":\"6\"}","{\"paramType\":\"param\",\"paramId\":\"7\"}"]
 * @parent ===ClassChangeCompareWindow===
 * 
 * @param ===ItemInfoWindow===
@@ -103,15 +123,15 @@
 * @default true
 * @desc Indicator whether this plugin affects the item info window or not.
 * Set false to keep the default YEP_ItemCore.js functionality.
-* @parent ===ItemChangeInfoWindow===
+* @parent ===ItemInfoWindow===
 * 
 * @param itemParams
 * @text Item Info Window Parameters
 * @type struct<complexParams>[]
-* @default ["0","1","2","3","4","5","6","7"]
+* @default ["{\"paramType\":\"param\",\"paramId\":\"0\"}","{\"paramType\":\"param\",\"paramId\":\"1\"}","{\"paramType\":\"param\",\"paramId\":\"2\"}","{\"paramType\":\"param\",\"paramId\":\"3\"}","{\"paramType\":\"param\",\"paramId\":\"4\"}","{\"paramType\":\"param\",\"paramId\":\"5\"}","{\"paramType\":\"param\",\"paramId\":\"6\"}","{\"paramType\":\"param\",\"paramId\":\"7\"}"]
 * @desc The parameters to show in the item info window.
 * See the help section for the number codes to use.
-* @parent ===ItemChangeInfoWindow===
+* @parent ===ItemInfoWindow===
 *
 * @param ===ShopInfoWindow===
 * @desc Shop Core change info window
@@ -127,20 +147,20 @@
 * @param shopItemParams
 * @text Shop Info Window Parameters
 * @type struct<complexParams>[]
-* @default ["0","1","2","3","4","5","6","7"]
+* @default ["{\"paramType\":\"param\",\"paramId\":\"0\"}","{\"paramType\":\"param\",\"paramId\":\"1\"}","{\"paramType\":\"param\",\"paramId\":\"2\"}","{\"paramType\":\"param\",\"paramId\":\"3\"}","{\"paramType\":\"param\",\"paramId\":\"4\"}","{\"paramType\":\"param\",\"paramId\":\"5\"}","{\"paramType\":\"param\",\"paramId\":\"6\"}","{\"paramType\":\"param\",\"paramId\":\"7\"}"]
 * @desc The parameters to show in the shop item info window.
 * See the help section for the number codes to use.
 * @parent ===ShopInfoWindow===
 *
 * @param shopActorParams
-* @text Shop Info Window Parameters
+* @text Shop Actor Window Parameters
 * @type struct<complexParams>[]
-* @default ["0","1","2","3","4","5","6","7"]
+* @default ["{\"paramType\":\"param\",\"paramId\":\"0\"}","{\"paramType\":\"param\",\"paramId\":\"1\"}","{\"paramType\":\"param\",\"paramId\":\"2\"}","{\"paramType\":\"param\",\"paramId\":\"3\"}","{\"paramType\":\"param\",\"paramId\":\"4\"}","{\"paramType\":\"param\",\"paramId\":\"5\"}","{\"paramType\":\"param\",\"paramId\":\"6\"}","{\"paramType\":\"param\",\"paramId\":\"7\"}"]
 * @desc The parameters to show in the shop actor info window.
 * See the help section for the number codes to use.
 * @parent ===ShopInfoWindow===
 *
-
+*
 /*
 * @help
 * 
@@ -211,6 +231,11 @@
 * ============================================================================
 * Change Log
 * ============================================================================
+*
+* Version 1.1.1:
+* -Bug fix for incorrect function call in the equip core
+* -Bug fix for incorrect display of xparam in percent format
+* -Move Ex-Param and Sp-Param names into customizable plugin parameters
 *
 * Version 1.1.0:
 * Released updated version that allows XParams and SParams in these menus:
@@ -283,53 +308,11 @@
   //=============================================================================
 
   Utils.getXParamName = function (paramId) {
-    switch (paramId) {
-      case 0:
-        return "Hit Rate";
-      case 1:
-        return "Evasion Rate";
-      case 2:
-        return "Critical Rate";
-      case 3:
-        return "Critical Evasion";
-      case 4:
-        return "Magic Evasion";
-      case 5:
-        return "Magic Reflection";
-      case 6:
-        return "Counter Attack";
-      case 7:
-        return "HP Regeneration";
-      case 8:
-        return "MP Regeneration";
-      case 9:
-        return "TP Regeneration";
-    }
+    return Parameters.xparamLabels[paramId];
   };
 
   Utils.getSParamName = function (paramId) {
-    switch (paramId) {
-      case 0:
-        return "Target Rate";
-      case 1:
-        return "Guard Effect";
-      case 2:
-        return "Recovery Effect";
-      case 3:
-        return "Pharmacology";
-      case 4:
-        return "MP Cost Rate";
-      case 5:
-        return "TP Charge Rate";
-      case 6:
-        return "Physical Damage Rate";
-      case 7:
-        return "Magical Damage Rate";
-      case 8:
-        return "Floor Damage Rate";
-      case 9:
-        return "Experience Rate";
-    }
+    return Parameters.sparamLabels[paramId];
   };
 
   Utils.getParamName = function (paramId, paramType) {
@@ -390,7 +373,9 @@
     if (paramType === "param") {
       return item.params[paramId];
     } else if (paramType === "xparam") {
-      return Utils.traitsPi(Game_BattlerBase.TRAIT_XPARAM, paramId, item.traits) * 100;
+      var value = Utils.traitsPi(Game_BattlerBase.TRAIT_XPARAM, paramId, item.traits);
+      return value !== 1 ? value * 100 : 0;
+      //return Utils.traitsPi(Game_BattlerBase.TRAIT_XPARAM, paramId, item.traits) * 100;
     } else if (paramType === "sparam") {
       return Utils.traitsPi(Game_BattlerBase.TRAIT_SPARAM, paramId, item.traits) * 100 - 100;
     }
@@ -479,7 +464,7 @@
         var x = this.contents.width - this.textPadding();
         x -= this._paramValueWidth + this._bonusValueWidth;
         var newValue = Utils.getParamValue(paramId, paramType, this._tempActor);
-        var diffvalue = newValue - this.getCurrentParamValue(paramId, paramType);
+        var diffvalue = newValue - Utils.getParamValue(paramId, paramType, this._actor);
         var actorparam = Yanfly.Util.toGroup(newValue);
         if (paramType === "xparam" || paramType === "sparam") {
           actorparam += "%";
@@ -756,7 +741,7 @@
         var x = this.contents.width - this.textPadding();
         x -= this._paramValueWidth + this._bonusValueWidth;
         var newValue = Utils.getParamValue(paramId, paramType, this._tempActor);
-        var diffvalue = newValue - this.getCurrentParamValue(paramId, paramType);
+        var diffvalue = newValue - Utils.getParamValue(paramId, paramType, this._actor);
         var actorparam = Yanfly.Util.toGroup(newValue);
         if (paramType === "xparam" || paramType === "sparam") {
           actorparam += "%";
@@ -822,7 +807,7 @@
           if (Utils.getItemParameterValue(paramId, paramType, item) >= 0) {
             text = '+' + text;
           }
-          if (text === '+0' || text === "*100%") this.changePaintOpacity(false);
+          if (text === '+0' || text === "+0%") this.changePaintOpacity(false);
           this.drawText(text, dx, rect.y, dw, 'right');
           this.changePaintOpacity(true);
         }
@@ -868,7 +853,7 @@
           if (Utils.getItemParameterValue(paramId, paramType, item) >= 0) {
             text = '+' + text;
           }
-          if (text === '+0' || text === "*100%") this.changePaintOpacity(false);
+          if (text === '+0' || text === "+0%") this.changePaintOpacity(false);
           this.drawText(text, dx, rect.y, dw, 'right');
           this.changePaintOpacity(true);
         }

@@ -7,8 +7,8 @@
 
 //=============================================================================
 /*:
- * @plugindesc Reads YEP (Yanfly) plugins activated in the project and
- * outputs the correct plugin order.
+ * @plugindesc v1.0.1 Reads YEP (Yanfly) plugins activated in the 
+ * project and outputs the correct plugin order.
  * @author Aloe Guvner
  * 
  * @param writeFile
@@ -112,6 +112,16 @@
  * 
  * Please refer to the MIT License description.
  * https://opensource.org/licenses/MIT
+ * 
+ * //=============================================================================
+ * //Version History
+ * //=============================================================================
+ * 
+ * Version 1.0.1 (June 15 2018):
+ * -Updated to add a message if nothing wrong is found
+ * 
+ * Version 1.0.0 (May 11 2018):
+ * -Initial release
  * 
  * //=============================================================================
  * //End of Help File
@@ -246,6 +256,8 @@
 								if (firstWrongPlugin.length > 0) {
 												console.log("Below is the first wrongly ordered plugin.\n" + "--------------------------------------------");
 												console.log(firstWrongPlugin[0]);
+								} else {
+												console.log("No issues were found with the plugin order.\n" + "Please be sure to check any that require manual review.");
 								}
 				};
 

@@ -3,6 +3,14 @@
 
 On the page of each plugin, locate the button labeled "Raw" in the upper-right. Right-click this button and choose "Save File As" to download.
 
+## Aloe Guvner Plugins
+
+### Terms of Use
+
+The following plugins are free for use in both commercial and non-commercial games.
+Credit is required either in the game, or in a text file which is included along with the game.
+Credit: Aloe Guvner
+
 [Mobile User Interface](https://github.com/aloeguvner/rpg-maker-mv/blob/master/plugins/ALOE_MobileUI.js)
 
 [Player Notepad (In-Game Text Editor)](https://github.com/aloeguvner/rpg-maker-mv/blob/master/plugins/ALOE_PlayerNotepad.js)
@@ -10,6 +18,15 @@ On the page of each plugin, locate the button labeled "Raw" in the upper-right. 
 [Item and Skill Sort Priority](https://github.com/aloeguvner/rpg-maker-mv/blob/master/plugins/ALOE_ItemSkillSortPriority.js)
 
 [Events as Counters and Ladders](https://github.com/aloeguvner/rpg-maker-mv/blob/master/plugins/ALOE_Event_Ladder_Counter.js)
+
+
+## YEP Extensions
+
+### Terms of Use
+
+The following YEP extensions are released under the [MIT License](https://opensource.org/licenses/MIT). This means that no attribution/credits are required, these extension plugins are freely available for use.
+
+### Extension Plugins
 
 Title: Menu Parameter Control
 Extends: Status Core, Skill Core, In-Battle Status Window, Class Change Core, Item Core, Shop Menu Core

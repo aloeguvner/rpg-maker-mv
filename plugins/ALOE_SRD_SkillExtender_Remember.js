@@ -37,9 +37,9 @@
         //=============================================================================
         // Scene_Battle:
         // --Overwrite commandSkillExtend to remember the last "extend" skill selected
-        // --Overwrite openSkillExtendWindow to select the remembered "extend" skill
+        // Scene_Skill:
+        // --Overwrite item to return the item instead of the string 'extend'
         // Window_SkillExtend:
-        // --Overwrite show to select the last command
         // --Overwrite selectLast to select the last "extend" skill remembered
         //=============================================================================
 
@@ -51,22 +51,69 @@
             this.onSelectAction();
         };
 
-        Scene_Battle.prototype.openSkillExtendWindow = function (skill) {
-            this._skillExtend.setup(skill);
-            this._skillExtend.open();
-            this._skillExtend.selectLast();
-            this._skillExtend.activate();
-        };
-
-        Window_SkillExtend.prototype.show = function () {
-            this.selectLast();
-            Window_SkillList.prototype.show.call(this);
+        Scene_Skill.prototype.item = function () {
+            var item = Scene_ItemBase.prototype.item.call(this);
+            if (item._se_extendSkills) {
+                if (this._skillExtend.isClosed()) {
+                    return item;
+                } else {
+                    return this._skillExtend.item();
+                }
+            } else {
+                return item;
+            }
         };
 
         Window_SkillExtend.prototype.selectLast = function () {
-            var skill = this._actor.lastBattleExtendSkill();
+            var skill = void 0;
+            if ($gameParty.inBattle()) {
+                skill = this._actor.lastBattleExtendSkill();
+            } else {
+                skill = this._actor.lastMenuExtendSkill();
+            }
             var index = this._data.indexOf(skill);
             this.select(index >= 0 ? index : 0);
+        };
+
+        //=============================================================================
+        // Modifications - SRD_SkillExtender methods
+        //=============================================================================
+        // Scene_Battle:
+        // --Modify openSkillExtendWindow to select the remembered "extend" skill
+        // Scene_Skill:
+        // --Modify createSkillExtendWindow to use the commandSkillExtend handler
+        // --Modify openSkillExtendWindow to select the remembered "extend" skill
+        //=============================================================================
+
+        var Scene_Battle_openSkillExtendWindow = Scene_Battle.prototype.openSkillExtendWindow;
+        Scene_Battle.prototype.openSkillExtendWindow = function (skill) {
+            Scene_Battle_openSkillExtendWindow.apply(this, arguments);
+            this._skillExtend.selectLast();
+        };
+
+        var Scene_Skill_createSkillExtendWindow = Scene_Skill.prototype.createSkillExtendWindow;
+        Scene_Skill.prototype.createSkillExtendWindow = function () {
+            Scene_Skill_createSkillExtendWindow.call(this);
+            this._skillExtend.setHandler('ok', this.commandSkillExtend.bind(this));
+        };
+
+        var Scene_Skill_openSkillExtendWindow = Scene_Skill.prototype.openSkillExtendWindow;
+        Scene_Skill.prototype.openSkillExtendWindow = function (skill) {
+            Scene_Skill_openSkillExtendWindow.apply(this, arguments);
+            this._skillExtend.selectLast();
+        };
+
+        //=============================================================================
+        // New Methods - SRD_SkillExtender methods
+        //=============================================================================
+        // Scene_Skill:
+        // --Create commandSkillExtend to return the last "extend" skill selected
+        //=============================================================================
+
+        Scene_Skill.prototype.commandSkillExtend = function () {
+            var skill = this._skillExtend.item();
+            this.actor().setlastMenuExtendSkill(skill);
+            this.determineItem();
         };
 
         //=============================================================================
@@ -75,6 +122,8 @@
         // Game_Actor:
         // --Create lastBattleExtendSkill to return the last "extend" skill selected
         // --Create setLastBattleExtendSkill to set the last "extend" skill when selected
+        // --Create lastBattleExtendSkill to return the last "extend" skill selected
+        // --Create setlastMenuExtendSkill to set the last "extend" skill when selected
         //=============================================================================
 
         Game_Actor.prototype.lastBattleExtendSkill = function () {
@@ -83,6 +132,14 @@
 
         Game_Actor.prototype.setlastBattleExtendSkill = function (skill) {
             this._lastBattleExtendSkill.setObject(skill);
+        };
+
+        Game_Actor.prototype.lastMenuExtendSkill = function () {
+            return this._lastMenuExtendSkill.object();
+        };
+
+        Game_Actor.prototype.setlastMenuExtendSkill = function (skill) {
+            this._lastMenuExtendSkill.setObject(skill);
         };
 
         //=============================================================================
@@ -94,12 +151,16 @@
         // --Modify onSkillOk to always set the last battle skill when a skill is selected.
         // --Modify onActorCancel to return to the extend window when appropriate
         // --Modify onEnemyCancel to return to the extend window when appropriate
+        // Scene_Skill:
+        // --Modify onItemOk to set the last menu skill and open the extend window
+        // --Modify hideSubWindow to return to the extend window if appropriate
         //=============================================================================
 
         var Game_Actor_initMembers = Game_Actor.prototype.initMembers;
         Game_Actor.prototype.initMembers = function () {
             Game_Actor_initMembers.call(this);
             this._lastBattleExtendSkill = new Game_Item();
+            this._lastMenuExtendSkill = new Game_Item();
         };
 
         var Scene_Battle_onSkillOk = Scene_Battle.prototype.onSkillOk;
@@ -125,7 +186,6 @@
         };
 
         var Scene_Battle_onEnemyCancel = Scene_Battle.prototype.onEnemyCancel;
-
         Scene_Battle.prototype.onEnemyCancel = function () {
             if (this._actorCommandWindow.currentSymbol() === 'skill' && BattleManager.actor().lastBattleSkill()._se_extendSkills) {
                 this._enemyWindow.hide();
@@ -133,6 +193,28 @@
                 this.openSkillExtendWindow(BattleManager.actor().lastBattleSkill());
             } else {
                 Scene_Battle_onEnemyCancel.call(this);
+            }
+        };
+
+        var Scene_Skill_onItemOk = Scene_Skill.prototype.onItemOk;
+        Scene_Skill.prototype.onItemOk = function () {
+            var item = this.item();
+            if (item._se_extendSkills) {
+                this.actor().setLastMenuSkill(item);
+                this.openSkillExtendWindow(item);
+            } else {
+                Scene_Skill_onItemOk.call(this);
+            }
+        };
+
+        var Scene_Skill_hideSubWindow = Scene_Skill.prototype.hideSubWindow;
+        Scene_Skill.prototype.hideSubWindow = function (window) {
+            if (this.actor().lastMenuSkill()._se_extendSkills) {
+                window.hide();
+                window.deactivate();
+                this.openSkillExtendWindow(this.actor().lastMenuSkill());
+            } else {
+                Scene_Skill_hideSubWindow.apply(this, arguments);
             }
         };
 

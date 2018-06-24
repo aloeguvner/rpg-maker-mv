@@ -11,6 +11,8 @@ The following plugins are free for use in both commercial and non-commercial gam
 Credit is required either in the game, or in a text file which is included along with the game.
 Credit: Aloe Guvner
 
+### Aloe Guvner Plugin Links
+
 [Mobile User Interface](https://github.com/aloeguvner/rpg-maker-mv/blob/master/plugins/ALOE_MobileUI.js)
 
 [Player Notepad (In-Game Text Editor)](https://github.com/aloeguvner/rpg-maker-mv/blob/master/plugins/ALOE_PlayerNotepad.js)
@@ -26,7 +28,7 @@ Credit: Aloe Guvner
 
 The following YEP extensions are released under the [MIT License](https://opensource.org/licenses/MIT). This means that no attribution/credits are required, these extension plugins are freely available for use.
 
-### Extension Plugins
+### YEP Extension Plugin Links
 
 Title: Menu Parameter Control
 Extends: Status Core, Skill Core, In-Battle Status Window, Class Change Core, Item Core, Shop Menu Core

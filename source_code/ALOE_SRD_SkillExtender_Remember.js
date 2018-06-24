@@ -30,65 +30,16 @@
 
     if (Imported["SumRndmDde Skill Extender"]) {
 
-    //=============================================================================
-    // Overwrites - RPG Maker base engine methods
-    //=============================================================================
-    // Scene_Battle:
-    // --Overwrite onActorCancel to return to the extend window when appropriate
-    // --Overwrite onEnemyCancel to return to the extend window when appropriate
-    //=============================================================================
-
-        Scene_Battle.prototype.onActorCancel = function () {
-            this._actorWindow.hide();
-            switch (this._actorCommandWindow.currentSymbol()) {
-                case 'skill':
-                    if (BattleManager.actor().lastBattleSkill()._se_extendSkills) {
-                        this._skillWindow.show();
-                        this.openSkillExtendWindow(BattleManager.actor().lastBattleSkill());
-                    } else {
-                        this._skillWindow.show();
-                        this._skillWindow.activate();
-                    }
-                    break;
-                case 'item':
-                    this._itemWindow.show();
-                    this._itemWindow.activate();
-                    break;
-            }
-        };
-
-        Scene_Battle.prototype.onEnemyCancel = function () {
-            this._enemyWindow.hide();
-            switch (this._actorCommandWindow.currentSymbol()) {
-                case 'attack':
-                    this._actorCommandWindow.activate();
-                    break;
-                case 'skill':
-                    if (BattleManager.actor().lastBattleSkill()._se_extendSkills) {
-                        this._skillWindow.show();
-                        this.openSkillExtendWindow(BattleManager.actor().lastBattleSkill());
-                    } else {
-                        this._skillWindow.show();
-                        this._skillWindow.activate();
-                    }
-                    break;
-                case 'item':
-                    this._itemWindow.show();
-                    this._itemWindow.activate();
-                    break;
-            }
-        };
-
-    //=============================================================================
-    // Overwrites - SRD_SkillExtender methods
-    //=============================================================================
-    // Scene_Battle:
-    // --Overwrite commandSkillExtend to remember the last "extend" skill selected
-    // --Overwrite openSkillExtendWindow to select the remembered "extend" skill
-    // Window_SkillExtend:
-    // --Overwrite show to select the last command
-    // --Overwrite selectLast to select the last "extend" skill remembered
-    //=============================================================================
+        //=============================================================================
+        // Overwrites - SRD_SkillExtender methods
+        //=============================================================================
+        // Scene_Battle:
+        // --Overwrite commandSkillExtend to remember the last "extend" skill selected
+        // --Overwrite openSkillExtendWindow to select the remembered "extend" skill
+        // Window_SkillExtend:
+        // --Overwrite show to select the last command
+        // --Overwrite selectLast to select the last "extend" skill remembered
+        //=============================================================================
 
         Scene_Battle.prototype.commandSkillExtend = function () {
             var skill = this._skillExtend.item();
@@ -116,13 +67,13 @@
             this.select(index >= 0 ? index : 0);
         };
 
-    //=============================================================================
-    // New Methods - RPG Maker base engine
-    //=============================================================================
-    // Game_Actor:
-    // --Create lastBattleExtendSkill to return the last "extend" skill selected
-    // --Create setLastBattleExtendSkill to set the last "extend" skill when selected
-    //=============================================================================
+        //=============================================================================
+        // New Methods - RPG Maker base engine
+        //=============================================================================
+        // Game_Actor:
+        // --Create lastBattleExtendSkill to return the last "extend" skill selected
+        // --Create setLastBattleExtendSkill to set the last "extend" skill when selected
+        //=============================================================================
 
         Game_Actor.prototype.lastBattleExtendSkill = function () {
             return this._lastBattleExtendSkill.object();
@@ -132,14 +83,16 @@
             this._lastBattleExtendSkill.setObject(skill);
         };
 
-    //=============================================================================
-    // Modifications - RPG Maker base engine methods (aliased)
-    //=============================================================================
-    // Game_Actor:
-    // --Modify initMembers to initialize the last extend skill.
-    // Scene_Battle:
-    // --Modify onSkillOk to always set the last battle skill when a skill is selected.
-    //=============================================================================
+        //=============================================================================
+        // Modifications - RPG Maker base engine methods (aliased)
+        //=============================================================================
+        // Game_Actor:
+        // --Modify initMembers to initialize the last extend skill.
+        // Scene_Battle:
+        // --Modify onSkillOk to always set the last battle skill when a skill is selected.
+        // --Modify onActorCancel to return to the extend window when appropriate
+        // --Modify onEnemyCancel to return to the extend window when appropriate
+        //=============================================================================
 
         const Game_Actor_initMembers = Game_Actor.prototype.initMembers;
         Game_Actor.prototype.initMembers = function () {
@@ -158,9 +111,34 @@
             }
         };
 
-    //=============================================================================
-    // End of Plugin Extension
-    //=============================================================================
+        const Scene_Battle_onActorCancel = Scene_Battle.prototype.onActorCancel;
+        Scene_Battle.prototype.onActorCancel = function () {
+            if (this._actorCommandWindow.currentSymbol() === 'skill' &&
+                BattleManager.actor().lastBattleSkill()._se_extendSkills) {
+                this._actorWindow.hide();
+                this._skillWindow.show();
+                this.openSkillExtendWindow(BattleManager.actor().lastBattleSkill());
+            } else {
+                Scene_Battle_onActorCancel.call(this);
+            }
+        }
+
+        const Scene_Battle_onEnemyCancel = Scene_Battle.prototype.onEnemyCancel;
+
+        Scene_Battle.prototype.onEnemyCancel = function () {
+            if (this._actorCommandWindow.currentSymbol() === 'skill' &&
+                BattleManager.actor().lastBattleSkill()._se_extendSkills) {
+                    this._enemyWindow.hide();
+                    this._skillWindow.show();
+                    this.openSkillExtendWindow(BattleManager.actor().lastBattleSkill());
+            } else {
+                Scene_Battle_onEnemyCancel.call(this);
+            }
+        };
+
+        //=============================================================================
+        // End of Plugin Extension
+        //=============================================================================
 
 
     } else {

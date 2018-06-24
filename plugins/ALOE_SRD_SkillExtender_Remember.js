@@ -33,55 +33,6 @@
     if (Imported["SumRndmDde Skill Extender"]) {
 
         //=============================================================================
-        // Overwrites - RPG Maker base engine methods
-        //=============================================================================
-        // Scene_Battle:
-        // --Overwrite onActorCancel to return to the extend window when appropriate
-        // --Overwrite onEnemyCancel to return to the extend window when appropriate
-        //=============================================================================
-
-        Scene_Battle.prototype.onActorCancel = function () {
-            this._actorWindow.hide();
-            switch (this._actorCommandWindow.currentSymbol()) {
-                case 'skill':
-                    if (BattleManager.actor().lastBattleSkill()._se_extendSkills) {
-                        this._skillWindow.show();
-                        this.openSkillExtendWindow(BattleManager.actor().lastBattleSkill());
-                    } else {
-                        this._skillWindow.show();
-                        this._skillWindow.activate();
-                    }
-                    break;
-                case 'item':
-                    this._itemWindow.show();
-                    this._itemWindow.activate();
-                    break;
-            }
-        };
-
-        Scene_Battle.prototype.onEnemyCancel = function () {
-            this._enemyWindow.hide();
-            switch (this._actorCommandWindow.currentSymbol()) {
-                case 'attack':
-                    this._actorCommandWindow.activate();
-                    break;
-                case 'skill':
-                    if (BattleManager.actor().lastBattleSkill()._se_extendSkills) {
-                        this._skillWindow.show();
-                        this.openSkillExtendWindow(BattleManager.actor().lastBattleSkill());
-                    } else {
-                        this._skillWindow.show();
-                        this._skillWindow.activate();
-                    }
-                    break;
-                case 'item':
-                    this._itemWindow.show();
-                    this._itemWindow.activate();
-                    break;
-            }
-        };
-
-        //=============================================================================
         // Overwrites - SRD_SkillExtender methods
         //=============================================================================
         // Scene_Battle:
@@ -141,6 +92,8 @@
         // --Modify initMembers to initialize the last extend skill.
         // Scene_Battle:
         // --Modify onSkillOk to always set the last battle skill when a skill is selected.
+        // --Modify onActorCancel to return to the extend window when appropriate
+        // --Modify onEnemyCancel to return to the extend window when appropriate
         //=============================================================================
 
         var Game_Actor_initMembers = Game_Actor.prototype.initMembers;
@@ -157,6 +110,29 @@
                 this.openSkillExtendWindow(skill);
             } else {
                 Scene_Battle_onSkillOk.call(this);
+            }
+        };
+
+        var Scene_Battle_onActorCancel = Scene_Battle.prototype.onActorCancel;
+        Scene_Battle.prototype.onActorCancel = function () {
+            if (this._actorCommandWindow.currentSymbol() === 'skill' && BattleManager.actor().lastBattleSkill()._se_extendSkills) {
+                this._actorWindow.hide();
+                this._skillWindow.show();
+                this.openSkillExtendWindow(BattleManager.actor().lastBattleSkill());
+            } else {
+                Scene_Battle_onActorCancel.call(this);
+            }
+        };
+
+        var Scene_Battle_onEnemyCancel = Scene_Battle.prototype.onEnemyCancel;
+
+        Scene_Battle.prototype.onEnemyCancel = function () {
+            if (this._actorCommandWindow.currentSymbol() === 'skill' && BattleManager.actor().lastBattleSkill()._se_extendSkills) {
+                this._enemyWindow.hide();
+                this._skillWindow.show();
+                this.openSkillExtendWindow(BattleManager.actor().lastBattleSkill());
+            } else {
+                Scene_Battle_onEnemyCancel.call(this);
             }
         };
 

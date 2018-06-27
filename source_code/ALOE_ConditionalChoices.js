@@ -153,6 +153,13 @@
 * My Choice <<,t.every(member => member.hp < member.mhp * .25)>>
 * 
 * =========================================================================
+* Version History
+* =========================================================================
+*
+* v1.0.0 - June 26 2018:
+* --Initial Release
+*
+* =========================================================================
 * End of Help Section
 * =========================================================================
 */
@@ -164,7 +171,6 @@
     //=============================================================================
 
     const params = PluginManager.parameters("ALOE_ConditionalChoices");
-
 
     //=============================================================================
     // New Methods - RPG Maker base engine classes
@@ -261,7 +267,7 @@
     //=============================================================================
 
 
-    const Game_Interpreter_setupChoices = Game_Interpreter.prototype.setupChoices
+    const Game_Interpreter_setupChoices = Game_Interpreter.prototype.setupChoices;
     Game_Interpreter.prototype.setupChoices = function (params) {
         Game_Interpreter_setupChoices.apply(this, arguments);
         const choices = $gameMessage.removeHiddenChoices(params[0]);

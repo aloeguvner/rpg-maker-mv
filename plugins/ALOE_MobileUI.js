@@ -1,7 +1,7 @@
 "use strict";
 
 /*:
-* @plugindesc Creates buttons on the screen for touch input
+* @plugindesc v1.1.0 Creates buttons on the screen for touch input
 * @author Aloe Guvner
 *
 * 
@@ -71,6 +71,32 @@
 * --This button is not mandatory.
 * 
 * //=============================================================================
+* Touch Input Methods:
+* //=============================================================================
+*
+* The following methods can be chosen for any of the key buttons. The default
+* method is "triggered".
+*
+* Triggered:
+*   This input method occurs when the button is just pressed down. It occurs only
+* once, in the same frame that the button was pressed.
+*
+* Pressed:
+*   This input method occurs every frame while the button is pressed down. Any action
+* that this button is doing will execute every frame (60 frames per second)
+*
+* Repeated:
+*   This input method occurs after 24 frames from when the button is pressed, and
+* then occurs every 6 frames while the button is still pressed.
+*
+* Long Pressed:
+*   This input method occurs after 24 frames from when the button is pressed, and
+* then occurs every frame while the button is still pressed.
+*
+* Released:
+*   This input method occurs when the button is no longer being pressed.
+*
+* //=============================================================================
 * Setup:
 * //=============================================================================
 * This plugin requires a new folder to be created within the project "img" folder.
@@ -120,6 +146,9 @@
 * Version History:
 * //=============================================================================
 * 
+* v1.1.0 (June 27 2018)
+* --Fixed bug with awkward player movement on the DPad
+* --Added ability to specify the type of touch input on key buttons
 * v1.0.3 (May 14 2018)
 * --Added ability to run custom code when a key button is pressed
 * v1.0.2 (May 9 2018)
@@ -178,6 +207,23 @@
  * @text Name
  * @type text
  * @desc The name of the button
+ * 
+ * @param inputMethod
+ * @text Input Method
+ * @type select
+ * @option Triggered
+ * @value 0
+ * @option Pressed
+ * @value 1
+ * @option Repeated
+ * @value 2
+ * @option Long Pressed
+ * @value 3
+ * @option Released
+ * @value 4
+ * @desc The type of touch input that will trigger the button.
+ * See the help file for full descriptions of the options.
+ * @default 0
  * 
  * @param inputTrigger
  * @text Input Code
@@ -493,7 +539,7 @@
 
 	Sprite_DirectionalPad.prototype.updateTouchInput = function () {
 		this.clearLastDirection();
-		if (TouchInput.isRepeated()) {
+		if (TouchInput.isPressed()) {
 			var point = new Point(TouchInput.x, TouchInput.y);
 			if (this.containsPoint(point)) {
 				if (this._soundEffect) {
@@ -577,6 +623,8 @@
 	Sprite_KeyButton.prototype.constructor = Sprite_KeyButton;
 
 	Sprite_KeyButton.prototype.initialize = function (x, y, image, soundEffect, inputTrigger, customCode) {
+		var inputMethod = arguments.length > 6 && arguments[6] !== undefined ? arguments[6] : 0;
+
 		Sprite_Button.prototype.initialize.call(this, x, y, image, soundEffect);
 		if (inputTrigger) {
 			this._inputTrigger = inputTrigger;
@@ -585,10 +633,33 @@
 			this._customCode = customCode;
 			this._customFunction = new Function(customCode).bind(SceneManager._scene);
 		}
+		this._inputMethod = inputMethod;
+	};
+
+	Sprite_KeyButton.prototype.isTouchTriggered = function () {
+		switch (this._inputMethod) {
+			case 0:
+				// Was just pressed
+				return TouchInput.isTriggered();
+			case 1:
+				//Currently pressed down
+				return TouchInput.isPressed();
+			case 2:
+				//Is repeated
+				return TouchInput.isRepeated();
+			case 3:
+				//Is kept pressed
+				return TouchInput.isLongPressed();
+			case 4:
+				//Was just released
+				return TouchInput.isReleased();
+			default:
+				return TouchInput.isTriggered();
+		}
 	};
 
 	Sprite_KeyButton.prototype.updateTouchInput = function () {
-		if (TouchInput.isTriggered()) {
+		if (this.isTouchTriggered()) {
 			var point = new Point(TouchInput.x, TouchInput.y);
 			if (this.containsPoint(point)) {
 				if (this._soundEffect) {
@@ -738,7 +809,7 @@
 				for (var i = 0; i < params.length; i++) {
 					if (params[i].activeScenes.length > 0 && params[i].activeScenes.contains(this.constructor)) {
 						var a = params[i];
-						this._keyButtons[a.name.toLowerCase()] = new Sprite_KeyButton(a.x, a.y, a.image, a.soundEffect, a.inputTrigger.toLowerCase(), a.customCode);
+						this._keyButtons[a.name.toLowerCase()] = new Sprite_KeyButton(a.x, a.y, a.image, a.soundEffect, a.inputTrigger.toLowerCase(), a.customCode, a.inputMethod);
 						this.addChild(this._keyButtons[a.name.toLowerCase()]);
 					}
 				}

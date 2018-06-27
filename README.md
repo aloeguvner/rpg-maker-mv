@@ -37,6 +37,10 @@ Credit: Aloe Guvner
 
 [Player Notepad (In-Game Text Editor)](https://github.com/aloeguvner/rpg-maker-mv/blob/master/plugins/ALOE_PlayerNotepad.js)
 
+[Conditional "Show Choices"](https://github.com/aloeguvner/rpg-maker-mv/blob/master/plugins/ALOE_ConditionalChoices.js)
+
+[Syncronize Variables with Items](https://github.com/aloeguvner/rpg-maker-mv/blob/master/plugins/ALOE_Sync_Variables_Items.js)
+
 [Item and Skill Sort Priority](https://github.com/aloeguvner/rpg-maker-mv/blob/master/plugins/ALOE_ItemSkillSortPriority.js)
 
 [Events as Counters and Ladders](https://github.com/aloeguvner/rpg-maker-mv/blob/master/plugins/ALOE_Event_Ladder_Counter.js)

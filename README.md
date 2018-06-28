@@ -9,11 +9,11 @@ On the page of each plugin, locate the button labeled "Raw" in the upper-right. 
 
 Two folder are included in this repository: "plugins" and "source_code".\
 The **source_code** folder are the plugins that I directly worked on, which use ES6+ features and are not compatible with RPG Maker MV versions prior to 1.6.0. If you would like to study how I implemented any features, this would be the version to look at.\
-The **plugins** folder is for the versions to install into your game, which do not use ES6+ features, meaning that these are compatible with RPG Maker MV 1.5.0+ and all browsers. These versions are transpiled using Babel.js.\
+The **plugins** folder is for the versions to install into your game, which do not use ES6+ features, meaning that these are compatible with RPG Maker MV 1.5.0+ and all browsers. These versions are transpiled using Babel.js.
 
 ### Contributions
 
-If you would like to contribute to any plugins, feel free to send a Pull Request!/
+If you would like to contribute to any plugins, feel free to send a Pull Request!
 
 ### Bugs/Issues
 
@@ -33,16 +33,69 @@ Credit: Aloe Guvner
 
 ### Aloe Guvner Plugin Links
 
+**Title**: Mobile User Interface\
+**Description**:\
+This plugin focuses on improving the user interface for mobile games created in RPG Maker MV, by allowing the developer to have virtual buttons on the screen that interact with touch input. 
+
+This plugin allows maximum flexibility for the developer, you can add as many or as few buttons as you want to the screen, and you can add these buttons on whichever screens you would like (i.e. map, menu, credits, title, etc.).\
+**Install Instructions**: No specific instructions. As with any plugin, if incompatibilities are found, try rearranging it.\
 [Mobile User Interface](https://github.com/aloeguvner/rpg-maker-mv/blob/master/plugins/ALOE_MobileUI.js)
 
+**Title**: Player Notepad\
+**Description**:\
+This plugin creates a new scene where the player can create, modify, and delete notes. The player uses their keyboard to type the notes, and all notes are saved along with the game's save file.\
+This opens up uses in:
+* Quest notes
+* Educational games
+* Crime/mystery games (player detective writes notes about suspects)
+* Crafting/recipes
+* and many more!
+
+**Install Instructions**: No specific instructions. As with any plugin, if incompatibilities are found, try rearranging it.\
 [Player Notepad (In-Game Text Editor)](https://github.com/aloeguvner/rpg-maker-mv/blob/master/plugins/ALOE_PlayerNotepad.js)
 
+
+**Title**: Conditional "Show Choices"\
+**Description**:\
+This plugin allows developers to set conditions directly in the "Show Choices" event command. These conditions can determine whether the choice is hidden or disabled.
+
+No scripting knowledge or plugin commands are required!\
+Everything is done directly in the "Show Choices" event command, providing an intuitive and efficient way to increase the depth of your story-telling through more interesting choices.
+
+**Install Instructions**: If using the HIME Large Choices plugin, install this plugin *above* the HIME plugin. Besides that, no specific instructions. As with any plugin, if incompatibilities are found, try rearranging it.\
 [Conditional "Show Choices"](https://github.com/aloeguvner/rpg-maker-mv/blob/master/plugins/ALOE_ConditionalChoices.js)
 
+**Title**: Syncronize Variables with Items\
+**Description**:\
+Some menu plugins require data to be stored as variables, which also has to be represented as item counts, or vice-versa.\
+If multiple currency systems (ex. using gold and gems) require the additional currencies to be represented as variables, it would be very useful to represent it as items in the inventory as well.
+
+This plugin will synchronize the value of a variable with the inventory count of a certain item/weapon/armor, making sure that they are always the same.
+
+**Install Instructions**: No specific instructions. As with any plugin, if incompatibilities are found, try rearranging it.\
 [Syncronize Variables with Items](https://github.com/aloeguvner/rpg-maker-mv/blob/master/plugins/ALOE_Sync_Variables_Items.js)
 
+**Title**: Syncronize Variables with Items\
+**Description**:\
+By default, the items/weapons/armors/skills are sorted by database ID number in menu windows, and there is no way to change this order from the editor.
+
+This simple plugin allows the developer to use a notetag in the database in order to define a custom order for the items/weapons/armors/skills to appear.
+
+**Install Instructions**: No specific instructions. As with any plugin, if incompatibilities are found, try rearranging it.\
 [Item and Skill Sort Priority](https://github.com/aloeguvner/rpg-maker-mv/blob/master/plugins/ALOE_ItemSkillSortPriority.js)
 
+
+**Title**: Syncronize Variables with Items\
+**Description**:\
+This plugin allows events to have the "ladder" functionality as seen in the tileset.\
+Any event with a graphic set to a tileset tile that is marked with the "ladder" property or has a notetag of `<ladder>` is treated as a ladder.
+When on a "ladder", the player, followers, and NPCs are always facing upwards regardless of the direction of movement.
+
+This plugin also allows events to have the properties of a "counter".\
+Any event with a graphic set to a tileset tile that is marked with the "counter" property or has a notetag of `<counter>` is treated as a counter.
+
+"Counter" allows interaction with other events from 1 space away. (Example: Speak to a shop owner standing behind a table)\
+**Install Instructions**: No specific instructions. As with any plugin, if incompatibilities are found, try rearranging it.\
 [Events as Counters and Ladders](https://github.com/aloeguvner/rpg-maker-mv/blob/master/plugins/ALOE_Event_Ladder_Counter.js)
 
 

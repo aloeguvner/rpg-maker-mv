@@ -8,7 +8,7 @@
 
 //=============================================================================
 /*:
-* @plugindesc Conditional Show Choices v1.0.0
+* @plugindesc v1.0.1
 * Define conditions to hide or disable choices in the event menu
 * @author Aloe Guvner
 *
@@ -157,6 +157,8 @@
 * Version History
 * =========================================================================
 *
+* v1.0.1 - July 1 2018:
+* --Fixed bug with calculating the window width
 * v1.0.0 - June 26 2018:
 * --Initial Release
 *
@@ -301,6 +303,7 @@
     // Window_ChoiceList:
     // --Overwrite drawItem to draw disabled commands in a lighter color.
     // --Overwrite callOkHandler to utilize 
+    // --Overwrite maxChoiceWidth to calculate without the regex
     //=============================================================================
 
     Window_ChoiceList.prototype.drawItem = function (index) {
@@ -314,6 +317,19 @@
         $gameMessage.onChoice($gameMessage._visibleChoiceIndexes[this.index()]);
         this._messageWindow.terminateMessage();
         this.close();
+    };
+
+    Window_ChoiceList.prototype.maxChoiceWidth = function () {
+        var regex = new RegExp(params.patternStart + "(.*)" + params.patternEnd);
+        var maxWidth = 96;
+        var choices = $gameMessage.choices();
+        for (var i = 0; i < choices.length; i++) {
+            var choiceWidth = this.textWidthEx(choices[i].replace(regex, "")) + this.textPadding() * 2;
+            if (maxWidth < choiceWidth) {
+                maxWidth = choiceWidth;
+            }
+        }
+        return maxWidth;
     };
 
     //=============================================================================

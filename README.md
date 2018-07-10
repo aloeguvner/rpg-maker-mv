@@ -82,7 +82,7 @@ This plugin will synchronize the value of a variable with the inventory count of
 
 ___
 
-**Title**: Syncronize Variables with Items\
+**Title**: Item and Skill Sort Priority\
 **Description**:\
 By default, the items/weapons/armors/skills are sorted by database ID number in menu windows, and there is no way to change this order from the editor.
 
@@ -93,7 +93,7 @@ This simple plugin allows the developer to use a notetag in the database in orde
 
 ___
 
-**Title**: Syncronize Variables with Items\
+**Title**: Events as Ladders and Counters\
 **Description**:\
 This plugin allows events to have the "ladder" functionality as seen in the tileset.\
 Any event with a graphic set to a tileset tile that is marked with the "ladder" property or has a notetag of `<ladder>` is treated as a ladder.

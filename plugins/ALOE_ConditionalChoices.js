@@ -2,7 +2,7 @@
 
 //=============================================================================
 // RPG Maker MV - Conditional Show Choices
-// ALOE_Event_Ladder_Counter.js
+// ALOE_ConditionalChoices.js
 //=============================================================================
 
 

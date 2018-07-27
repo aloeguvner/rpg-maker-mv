@@ -7,7 +7,7 @@
 
 //=============================================================================
 /*:
- * @plugindesc v0.2.0 YEP Party System and Row Formation Modifications
+ * @plugindesc v1.0.0 YEP Party System and Row Formation Modifications
  * @author Aloe Guvner
  *
  * @param formationCompareStrictness
@@ -279,15 +279,6 @@ Scene_Party.prototype.didAnythingChange = function (oldState) {
     }
 };
 
-// WORK IN PROGRESS
-// Dynamically display cooldown text or gauge in the party command window
-
-// ░
-// Yanfly.Param.RowCooldown
-// Yanfly.Param.PartyCooldown
-// $gameSystem._battleFormationCooldown
-// $gameSystem._battleRowCooldown
-// ▓
 Window_PartyCommand.prototype.addRowCommand = function () {
     if (!$gameSystem.isShowRowBattle()) return;
     var index = this.findSymbol('escape');
@@ -341,20 +332,3 @@ Window_PartyCommand.prototype.generatePartyRowCommandText = function (currentCoo
     }
     return text;
 };
-
-// // Alter this to show the cooldown [actually look into the refresh method because this is only called once]
-// Window_PartyCommand.prototype.addFormationCommand = function () {
-//     if (!$gameSystem.isShowBattleFormation()) return;
-//     var index = this.findSymbol('escape');
-//     var enabled = $gameSystem.isBattleFormationEnabled();
-//     this.addCommandAt(index, TextManager.formation, 'formation', enabled);
-// };
-
-// // Alter this to show cooldown [actually look into the refresh method because this is only called once]
-// Window_MenuCommand.prototype.addRowCommand = function () {
-//     if (!$gameSystem.isShowRowMenu()) return;
-//     if (this.findSymbol('row') > -1) return;
-//     var text = Yanfly.Param.RowCmdName;
-//     var enabled = $gameSystem.isEnabledRowMenu();
-//     this.addCommand(text, 'row', enabled);
-// };

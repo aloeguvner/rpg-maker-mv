@@ -7,7 +7,7 @@
 
 //=============================================================================
 /*:
- * @plugindesc v0.1.0 YEP Party System and Row Formation Modifications
+ * @plugindesc v0.2.0 YEP Party System and Row Formation Modifications
  * @author Aloe Guvner
  *
  * @param formationCompareStrictness
@@ -20,6 +20,54 @@
  * @desc Strictness level to check if cooldown should
  * be triggered after the Party Formation scene. (see help)
  * @default 1
+ * 
+ * @param cooldownBarType
+ * @text Cooldown Bar Type
+ * @type select
+ * @option Text
+ * @value 1
+ * @desc Whether the cooldown by is described by text
+ * or a gauge (gauge not available yet)
+ * @default 1
+ * 
+ * @param cooldownBarMode
+ * @text Cooldown Bar Mode
+ * @type select
+ * @option Fill
+ * @value 1
+ * @option Drain
+ * @value 2
+ * @desc Controls whether the cooldown bar will "fill"
+ * or "drain" as the cooldown decreases.
+ * @default 1
+ * 
+ * @param cooldownEmptyCharacter
+ * @text Cooldown Empty Character
+ * @type text
+ * @desc This is the character that shows the "empty"
+ * part of the cooldown bar.
+ * @default ░
+ * 
+ * @param cooldownFilledCharacter
+ * @text Cooldown Filled Character
+ * @type text
+ * @desc This is the character that shows the "filled"
+ * part of the cooldown bar.
+ * @default ▓
+ * 
+ * @param cooldownBeginningCharacter
+ * @text Cooldown Beginning Character
+ * @type text
+ * @desc A character that can be added before the "empty"
+ * and "filled" characters.
+ * @default
+ * 
+ * @param cooldownEndingCharacter
+ * @text Cooldown Ending Character
+ * @type text
+ * @desc A character that can be added after the "empty"
+ * and "filled" characters.
+ * @default
  * 
  * @help
  * Current Functionality:
@@ -35,7 +83,7 @@
  * 
  * __Formation Compare Strictness__
  * 
- * The party is be examined before and after the player uses the Party Formation
+ * The party is examined before and after the player uses the Party Formation
  * scene to change their party.
  * The cooldown of this command will trigger if any change is detected in the
  * party from this scene.
@@ -233,6 +281,66 @@ Scene_Party.prototype.didAnythingChange = function (oldState) {
 
 // WORK IN PROGRESS
 // Dynamically display cooldown text or gauge in the party command window
+
+// ░
+// Yanfly.Param.RowCooldown
+// Yanfly.Param.PartyCooldown
+// $gameSystem._battleFormationCooldown
+// $gameSystem._battleRowCooldown
+// ▓
+Window_PartyCommand.prototype.addRowCommand = function () {
+    if (!$gameSystem.isShowRowBattle()) return;
+    var index = this.findSymbol('escape');
+    var enabled = $gameSystem.isEnabledRowBattle();
+    var text = '';
+    var currentCooldown = $gameSystem._battleRowCooldown;
+    if (currentCooldown === 0) {
+        text = Yanfly.Param.RowCmdName;
+    } else {
+        var maxCooldown = Yanfly.Param.RowCooldown;
+        text = this.generatePartyRowCommandText(currentCooldown, maxCooldown);
+    }
+    this.addCommandAt(index, text, 'row', enabled);
+};
+
+Window_PartyCommand.prototype.addFormationCommand = function () {
+    if (!$gameSystem.isShowBattleFormation()) return;
+    var index = this.findSymbol('escape');
+    var enabled = $gameSystem.isBattleFormationEnabled();
+    var text = '';
+    var currentCooldown = $gameSystem._battleFormationCooldown;
+    if (currentCooldown === 0) {
+        text = TextManager.formation;
+    } else {
+        var maxCooldown = Yanfly.Param.PartyCooldown;
+        text = this.generatePartyRowCommandText(currentCooldown, maxCooldown);
+    }
+    this.addCommandAt(index, text, 'formation', enabled);
+};
+
+Window_PartyCommand.prototype.generatePartyRowCommandText = function (currentCooldown, maxCooldown) {
+    var text = '';
+    if (Parameters.cooldownBeginningCharacter) {
+        text += Parameters.cooldownBeginningCharacter;
+    }
+    if (Parameters.cooldownBarMode === 1) {
+        //fill mode
+        var filledCharacterNum = maxCooldown - currentCooldown;
+        var emptyCharacterNum = currentCooldown;
+        text += Parameters.cooldownFilledCharacter.repeat(filledCharacterNum);
+        text += Parameters.cooldownEmptyCharacter.repeat(emptyCharacterNum);
+    } else if (Parameters.cooldownBarMode === 2) {
+        //drain mode
+        var _emptyCharacterNum = maxCooldown - currentCooldown;
+        var _filledCharacterNum = currentCooldown;
+        text += Parameters.cooldownFilledCharacter.repeat(_filledCharacterNum);
+        text += Parameters.cooldownEmptyCharacter.repeat(_emptyCharacterNum);
+    }
+    if (Parameters.cooldownEndingCharacter) {
+        text += Parameters.cooldownEndingCharacter;
+    }
+    return text;
+};
 
 // // Alter this to show the cooldown [actually look into the refresh method because this is only called once]
 // Window_PartyCommand.prototype.addFormationCommand = function () {

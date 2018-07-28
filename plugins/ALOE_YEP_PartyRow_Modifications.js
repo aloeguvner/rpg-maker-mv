@@ -383,14 +383,16 @@ Game_System.prototype.updateBattleFormationCooldown = function () {
 //=============================================================================
 // Overwrite Methods - Party Command Window section
 //=============================================================================
-// v1.0.2 Do not dim the disabled commands for Party or Row
+// v1.0.3 Do not dim the disabled commands for Party or Row
 //=============================================================================
 
 Window_PartyCommand.prototype.drawItem = function (index) {
     var rect = this.itemRectForText(index);
     var align = this.itemTextAlign();
     this.resetTextColor();
-    this.drawCommandIcon(index, rect); // line added
+    if (Imported.ALOE_CommandIcons) {
+        this.drawCommandIcon(index, rect);
+    }
     if (['formation', 'row'].contains(this.commandSymbol(index))) {
         this.changePaintOpacity(true);
     } else {

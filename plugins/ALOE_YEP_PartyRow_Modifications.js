@@ -7,7 +7,7 @@
 
 //=============================================================================
 /*:
- * @plugindesc v1.0.1 YEP Party System and Row Formation Modifications
+ * @plugindesc v1.0.2 YEP Party System and Row Formation Modifications
  * @author Aloe Guvner
  *
  * @param formationCompareStrictness
@@ -106,6 +106,8 @@
  * ============================================================================
  * Version History
  * ============================================================================
+ * v1.0.2:
+ * --Do not dim the commands for Row or Party when on cooldown
  * v1.0.1:
  * --Bug fix for negative cooldown values
  * v1.0.0:
@@ -373,4 +375,22 @@ var Game_System_updateBattleFormationCooldown = Game_System.prototype.updateBatt
 Game_System.prototype.updateBattleFormationCooldown = function () {
     Game_System_updateBattleFormationCooldown.call(this);
     if (this._battleFormationCooldown < 0) this._battleFormationCooldown = 0;
+};
+
+//=============================================================================
+// Overwrite Methods - Party Command Window section
+//=============================================================================
+// v1.0.2 Do not dim the disabled commands for Party or Row
+//=============================================================================
+
+Window_PartyCommand.prototype.drawItem = function (index) {
+    var rect = this.itemRectForText(index);
+    var align = this.itemTextAlign();
+    this.resetTextColor();
+    if (['formation', 'row'].contains(this.commandSymbol(index))) {
+        this.changePaintOpacity(true);
+    } else {
+        this.changePaintOpacity(this.isCommandEnabled(index));
+    }
+    this.drawText(this.commandName(index), rect.x, rect.y, rect.width, align);
 };

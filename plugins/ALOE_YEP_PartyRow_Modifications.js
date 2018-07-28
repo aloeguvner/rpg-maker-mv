@@ -7,7 +7,7 @@
 
 //=============================================================================
 /*:
- * @plugindesc v1.0.0 YEP Party System and Row Formation Modifications
+ * @plugindesc v1.0.1 YEP Party System and Row Formation Modifications
  * @author Aloe Guvner
  *
  * @param formationCompareStrictness
@@ -103,6 +103,13 @@
  * --Example: Lucius (in battle) is sent to reserves (no replacement)
  * --Example: Harold (1st) and Marsha (3rd) swap positions.
  * 
+ * ============================================================================
+ * Version History
+ * ============================================================================
+ * v1.0.1:
+ * --Bug fix for negative cooldown values
+ * v1.0.0:
+ * --Initial release
 */
 //=============================================================================
 
@@ -195,7 +202,7 @@ Scene_Row.prototype.getCurrentRowState = function () {
  * Check if the current state is different than the cached state.
  *
  * @method Scene_Row.prototype.didAnythingChange
- * @param {Object} object The old state of the actor rows.
+ * @param {Object} oldState The old state of the actor rows.
  * @return {Boolean} True if the new state is different than the old state.
  */
 Scene_Row.prototype.didAnythingChange = function (oldState) {
@@ -264,7 +271,7 @@ Scene_Party.prototype.getCurrentFormationState = function () {
  * Check if the current state is different than the cached state.
  *
  * @method Scene_Party.prototype.didAnythingChange
- * @param {Object} object The old state of the actor formation.
+ * @param {Object} oldState The old state of the actor formation.
  * @return {Boolean} True if the new state is different than the old state.
  */
 Scene_Party.prototype.didAnythingChange = function (oldState) {
@@ -279,35 +286,18 @@ Scene_Party.prototype.didAnythingChange = function (oldState) {
     }
 };
 
-Window_PartyCommand.prototype.addRowCommand = function () {
-    if (!$gameSystem.isShowRowBattle()) return;
-    var index = this.findSymbol('escape');
-    var enabled = $gameSystem.isEnabledRowBattle();
-    var text = '';
-    var currentCooldown = $gameSystem._battleRowCooldown;
-    if (currentCooldown === 0) {
-        text = Yanfly.Param.RowCmdName;
-    } else {
-        var maxCooldown = Yanfly.Param.RowCooldown;
-        text = this.generatePartyRowCommandText(currentCooldown, maxCooldown);
-    }
-    this.addCommandAt(index, text, 'row', enabled);
-};
+//=============================================================================
+// New Methods - Party Command Window section
+//=============================================================================
 
-Window_PartyCommand.prototype.addFormationCommand = function () {
-    if (!$gameSystem.isShowBattleFormation()) return;
-    var index = this.findSymbol('escape');
-    var enabled = $gameSystem.isBattleFormationEnabled();
-    var text = '';
-    var currentCooldown = $gameSystem._battleFormationCooldown;
-    if (currentCooldown === 0) {
-        text = TextManager.formation;
-    } else {
-        var maxCooldown = Yanfly.Param.PartyCooldown;
-        text = this.generatePartyRowCommandText(currentCooldown, maxCooldown);
-    }
-    this.addCommandAt(index, text, 'formation', enabled);
-};
+/**
+ * Generate the text to fill the command window for row and formation
+ * 
+ * @method Window_PartyCommand.prototype.generatePartyRowCommandText
+ * @param {Integer} currentCooldown The current cooldown of the command
+ * @param {Integer} maxCooldown The maximum cooldown of the command
+ * @return {String} The text of the command to draw on the window
+ */
 
 Window_PartyCommand.prototype.generatePartyRowCommandText = function (currentCooldown, maxCooldown) {
     var text = '';
@@ -331,4 +321,56 @@ Window_PartyCommand.prototype.generatePartyRowCommandText = function (currentCoo
         text += Parameters.cooldownEndingCharacter;
     }
     return text;
+};
+
+//=============================================================================
+// Overwrites - Party Command Window section
+//=============================================================================
+
+Window_PartyCommand.prototype.addRowCommand = function () {
+    if (!$gameSystem.isShowRowBattle()) return;
+    var index = this.findSymbol('escape');
+    var enabled = $gameSystem.isEnabledRowBattle();
+    var text = '';
+    var currentCooldown = $gameSystem._battleRowCooldown;
+    if (currentCooldown <= 0) {
+        text = Yanfly.Param.RowCmdName;
+    } else {
+        var maxCooldown = Yanfly.Param.RowCooldown;
+        text = this.generatePartyRowCommandText(currentCooldown, maxCooldown);
+    }
+    this.addCommandAt(index, text, 'row', enabled);
+};
+
+Window_PartyCommand.prototype.addFormationCommand = function () {
+    if (!$gameSystem.isShowBattleFormation()) return;
+    var index = this.findSymbol('escape');
+    var enabled = $gameSystem.isBattleFormationEnabled();
+    var text = '';
+    var currentCooldown = $gameSystem._battleFormationCooldown;
+    if (currentCooldown <= 0) {
+        text = TextManager.formation;
+    } else {
+        var maxCooldown = Yanfly.Param.PartyCooldown;
+        text = this.generatePartyRowCommandText(currentCooldown, maxCooldown);
+    }
+    this.addCommandAt(index, text, 'formation', enabled);
+};
+
+//=============================================================================
+// Aliased Methods - Party Command Window section
+//=============================================================================
+// v1.0.1 Bug fix to prevent negative cooldowns
+//=============================================================================
+
+var Game_System_updateBattleRowCooldown = Game_System.prototype.updateBattleRowCooldown;
+Game_System.prototype.updateBattleRowCooldown = function () {
+    Game_System_updateBattleRowCooldown.call(this);
+    if (this._battleRowCooldown < 0) this._battleRowCooldown = 0;
+};
+
+var Game_System_updateBattleFormationCooldown = Game_System.prototype.updateBattleFormationCooldown;
+Game_System.prototype.updateBattleFormationCooldown = function () {
+    Game_System_updateBattleFormationCooldown.call(this);
+    if (this._battleFormationCooldown < 0) this._battleFormationCooldown = 0;
 };

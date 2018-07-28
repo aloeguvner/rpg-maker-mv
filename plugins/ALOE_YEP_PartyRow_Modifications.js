@@ -7,7 +7,7 @@
 
 //=============================================================================
 /*:
- * @plugindesc v1.0.2 YEP Party System and Row Formation Modifications
+ * @plugindesc v1.0.3 YEP Party System and Row Formation Modifications
  * @author Aloe Guvner
  *
  * @param formationCompareStrictness
@@ -47,7 +47,7 @@
  * @desc This is the character that shows the "empty"
  * part of the cooldown bar.
  * @default ░
- * 
+ *  
  * @param cooldownFilledCharacter
  * @text Cooldown Filled Character
  * @type text
@@ -106,6 +106,9 @@
  * ============================================================================
  * Version History
  * ============================================================================
+ * v1.0.3:
+ * --Compatibility patch to not dim Row or Party and draw icons with 
+ * ALOE_CommandIcons
  * v1.0.2:
  * --Do not dim the commands for Row or Party when on cooldown
  * v1.0.1:
@@ -387,6 +390,7 @@ Window_PartyCommand.prototype.drawItem = function (index) {
     var rect = this.itemRectForText(index);
     var align = this.itemTextAlign();
     this.resetTextColor();
+    this.drawCommandIcon(index, rect); // line added
     if (['formation', 'row'].contains(this.commandSymbol(index))) {
         this.changePaintOpacity(true);
     } else {

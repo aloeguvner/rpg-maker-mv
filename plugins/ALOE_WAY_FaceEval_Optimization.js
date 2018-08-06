@@ -1,7 +1,7 @@
 'use strict';
 
 //=============================================================================
-// RPG Maker MV - Command Icons
+// RPG Maker MV - Face Eval Optimization
 // ALOE_WAY_FaceEval_Optimization.js
 //=============================================================================
 

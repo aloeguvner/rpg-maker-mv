@@ -11,12 +11,12 @@ Imported.ALOE_PlayerNotepad = true;
 var ALOE = ALOE || {};
 ALOE.Alias = ALOE.Alias || {};
 ALOE.PlayerNotepad = {};
-ALOE.PlayerNotepad.version = 1.01;
+ALOE.PlayerNotepad.version = '1.1.0';
 
 //=============================================================================
 
 /*:
-* @plugindesc v1.02 Creates a new scene where players can record notes
+* @plugindesc v1.1.0 Creates a new scene where players can record notes
 * in a notepad using their keyboard.
 * @author Aloe Guvner
 *
@@ -38,8 +38,8 @@ ALOE.PlayerNotepad.version = 1.01;
 * @text Input Codes
 * @type struct<InputCodes>[]
 * @desc Configures the key codes that can be typed.
-* The Key Code is paired with a character value that is printed on screen.
-* @default ["{\"k\":\"65\",\"c\":\"a\",\"s\":\"A\"}","{\"k\":\"66\",\"c\":\"b\",\"s\":\"B\"}","{\"k\":\"67\",\"c\":\"c\",\"s\":\"C\"}","{\"k\":\"68\",\"c\":\"d\",\"s\":\"D\"}","{\"k\":\"69\",\"c\":\"e\",\"s\":\"E\"}","{\"k\":\"70\",\"c\":\"f\",\"s\":\"F\"}","{\"k\":\"71\",\"c\":\"g\",\"s\":\"G\"}","{\"k\":\"72\",\"c\":\"h\",\"s\":\"H\"}","{\"k\":\"73\",\"c\":\"i\",\"s\":\"I\"}","{\"k\":\"74\",\"c\":\"j\",\"s\":\"J\"}","{\"k\":\"75\",\"c\":\"k\",\"s\":\"K\"}","{\"k\":\"76\",\"c\":\"l\",\"s\":\"L\"}","{\"k\":\"77\",\"c\":\"m\",\"s\":\"M\"}","{\"k\":\"78\",\"c\":\"n\",\"s\":\"N\"}","{\"k\":\"79\",\"c\":\"o\",\"s\":\"O\"}","{\"k\":\"80\",\"c\":\"p\",\"s\":\"P\"}","{\"k\":\"81\",\"c\":\"q\",\"s\":\"Q\"}","{\"k\":\"82\",\"c\":\"r\",\"s\":\"R\"}","{\"k\":\"83\",\"c\":\"s\",\"s\":\"S\"}","{\"k\":\"84\",\"c\":\"t\",\"s\":\"T\"}","{\"k\":\"85\",\"c\":\"u\",\"s\":\"U\"}","{\"k\":\"86\",\"c\":\"v\",\"s\":\"V\"}","{\"k\":\"87\",\"c\":\"w\",\"s\":\"W\"}","{\"k\":\"88\",\"c\":\"x\",\"s\":\"X\"}","{\"k\":\"89\",\"c\":\"y\",\"s\":\"Y\"}","{\"k\":\"90\",\"c\":\"z\",\"s\":\"Z\"}","{\"k\":\"48\",\"c\":\"0\",\"s\":\")\"}","{\"k\":\"49\",\"c\":\"1\",\"s\":\"!\"}","{\"k\":\"50\",\"c\":\"2\",\"s\":\"\"}","{\"k\":\"51\",\"c\":\"3\",\"s\":\"#\"}","{\"k\":\"52\",\"c\":\"4\",\"s\":\"$\"}","{\"k\":\"53\",\"c\":\"5\",\"s\":\"%\"}","{\"k\":\"54\",\"c\":\"6\",\"s\":\"^\"}","{\"k\":\"55\",\"c\":\"7\",\"s\":\"&\"}","{\"k\":\"56\",\"c\":\"8\",\"s\":\"*\"}","{\"k\":\"57\",\"c\":\"9\",\"s\":\"(\"}"]
+* The Key Code is paired with character values.
+* @default ["{\"k\":\"65\",\"c\":\"a\",\"s\":\"A\",\"a\":\"\",\"sa\":\"\"}","{\"k\":\"66\",\"c\":\"b\",\"s\":\"B\",\"a\":\"\",\"sa\":\"\"}","{\"k\":\"67\",\"c\":\"c\",\"s\":\"C\",\"a\":\"\",\"sa\":\"\"}","{\"k\":\"68\",\"c\":\"d\",\"s\":\"D\",\"a\":\"\",\"sa\":\"\"}","{\"k\":\"69\",\"c\":\"e\",\"s\":\"E\",\"a\":\"\",\"sa\":\"\"}","{\"k\":\"70\",\"c\":\"f\",\"s\":\"F\",\"a\":\"\",\"sa\":\"\"}","{\"k\":\"71\",\"c\":\"g\",\"s\":\"G\",\"a\":\"\",\"sa\":\"\"}","{\"k\":\"72\",\"c\":\"h\",\"s\":\"H\",\"a\":\"\",\"sa\":\"\"}","{\"k\":\"73\",\"c\":\"i\",\"s\":\"I\",\"a\":\"\",\"sa\":\"\"}","{\"k\":\"74\",\"c\":\"j\",\"s\":\"J\",\"a\":\"\",\"sa\":\"\"}","{\"k\":\"75\",\"c\":\"k\",\"s\":\"K\",\"a\":\"\",\"sa\":\"\"}","{\"k\":\"76\",\"c\":\"l\",\"s\":\"L\",\"a\":\"\",\"sa\":\"\"}","{\"k\":\"77\",\"c\":\"m\",\"s\":\"M\",\"a\":\"\",\"sa\":\"\"}","{\"k\":\"78\",\"c\":\"n\",\"s\":\"N\",\"a\":\"\",\"sa\":\"\"}","{\"k\":\"79\",\"c\":\"o\",\"s\":\"O\",\"a\":\"\",\"sa\":\"\"}","{\"k\":\"80\",\"c\":\"p\",\"s\":\"P\",\"a\":\"\",\"sa\":\"\"}","{\"k\":\"81\",\"c\":\"q\",\"s\":\"Q\",\"a\":\"\",\"sa\":\"\"}","{\"k\":\"82\",\"c\":\"r\",\"s\":\"R\",\"a\":\"\",\"sa\":\"\"}","{\"k\":\"83\",\"c\":\"s\",\"s\":\"S\",\"a\":\"\",\"sa\":\"\"}","{\"k\":\"84\",\"c\":\"t\",\"s\":\"T\",\"a\":\"\",\"sa\":\"\"}","{\"k\":\"85\",\"c\":\"u\",\"s\":\"U\",\"a\":\"\",\"sa\":\"\"}","{\"k\":\"86\",\"c\":\"v\",\"s\":\"V\",\"a\":\"\",\"sa\":\"\"}","{\"k\":\"87\",\"c\":\"w\",\"s\":\"W\",\"a\":\"\",\"sa\":\"\"}","{\"k\":\"88\",\"c\":\"x\",\"s\":\"X\",\"a\":\"\",\"sa\":\"\"}","{\"k\":\"89\",\"c\":\"y\",\"s\":\"Y\",\"a\":\"\",\"sa\":\"\"}","{\"k\":\"90\",\"c\":\"z\",\"s\":\"Z\",\"a\":\"\",\"sa\":\"\"}","{\"k\":\"48\",\"c\":\"0\",\"s\":\")\",\"a\":\"\",\"sa\":\"\"}","{\"k\":\"49\",\"c\":\"1\",\"s\":\"!\",\"a\":\"\",\"sa\":\"\"}","{\"k\":\"50\",\"c\":\"2\",\"s\":\"\",\"a\":\"\",\"sa\":\"\"}","{\"k\":\"51\",\"c\":\"3\",\"s\":\"#\",\"a\":\"\",\"sa\":\"\"}","{\"k\":\"52\",\"c\":\"4\",\"s\":\"$\",\"a\":\"\",\"sa\":\"\"}","{\"k\":\"53\",\"c\":\"5\",\"s\":\"%\",\"a\":\"\",\"sa\":\"\"}","{\"k\":\"54\",\"c\":\"6\",\"s\":\"^\",\"a\":\"\",\"sa\":\"\"}","{\"k\":\"55\",\"c\":\"7\",\"s\":\"&\",\"a\":\"\",\"sa\":\"\"}","{\"k\":\"56\",\"c\":\"8\",\"s\":\"*\",\"a\":\"\",\"sa\":\"\"}","{\"k\":\"57\",\"c\":\"9\",\"s\":\"(\",\"a\":\"\",\"sa\":\"\"}","{\"k\":\"186\",\"c\":\";\",\"s\":\":\",\"a\":\"\",\"sa\":\"\"}","{\"k\":\"187\",\"c\":\"=\",\"s\":\"+\",\"a\":\"\",\"sa\":\"\"}","{\"k\":\"188\",\"c\":\",\",\"s\":\"<\",\"a\":\"\",\"sa\":\"\"}","{\"k\":\"189\",\"c\":\"-\",\"s\":\"_\",\"a\":\"\",\"sa\":\"\"}","{\"k\":\"190\",\"c\":\".\",\"s\":\">\",\"a\":\"\",\"sa\":\"\"}","{\"k\":\"191\",\"c\":\"/\",\"s\":\"?\",\"a\":\"\",\"sa\":\"\"}","{\"k\":\"192\",\"c\":\"`\",\"s\":\"~\",\"a\":\"\",\"sa\":\"\"}","{\"k\":\"219\",\"c\":\"[\",\"s\":\"{\",\"a\":\"\",\"sa\":\"\"}","{\"k\":\"220\",\"c\":\"\\\\\",\"s\":\"|\",\"a\":\"\",\"sa\":\"\"}","{\"k\":\"221\",\"c\":\"]\",\"s\":\"}\",\"a\":\"\",\"sa\":\"\"}","{\"k\":\"222\",\"c\":\"'\",\"s\":\"\\\"\",\"a\":\"\",\"sa\":\"\"}"]
 * 
 * @param ---Title Settings---
 * @default
@@ -66,32 +66,32 @@ ALOE.PlayerNotepad.version = 1.01;
 * @text Save Note
 * @type text
 * @parent ---Text Commands---
-* @desc This command appears in a window when the player finishes modifying
-* a note. This command will save the changes the player made.
+* @desc This command appears in a window when the player finishes
+* modifying a note. This command will saves changes.
 * @default Save Note
 * 
 * @param discardChanges
 * @text Discard Changes
 * @type text
 * @parent ---Text Commands---
-* @desc This command appears in a window when the player finishes modifying
-* a note. This command will discard the changes the player made.
+* @desc This command appears in a window when the player finishes
+* modifying a note. This command discards changes.
 * @default Discard Changes
 * 
 * @param modifyNote
 * @text Modify Note
 * @type text
 * @parent ---Text Commands---
-* @desc This command appears in a window when the player selects a note
-* from the list. This command will allow the player to modify that note.
+* @desc This command appears in a window when the player selects a
+* note to modify.
 * @default Modify Note
 * 
 * @param deleteNote
 * @text Delete Note
 * @type text
 * @parent ---Text Commands---
-* @desc This command appears in a window when the player selects a note
-* from the list. This command will delete that note.
+* @desc This command appears in a window when the player selects a
+* note to delete.
 * @default Delete Note
 * 
 * @param ---Color Settings---
@@ -154,16 +154,16 @@ ALOE.PlayerNotepad.version = 1.01;
 * @text Title Instructions
 * @type text
 * @parent ---Help Window Instructions---
-* @desc These instructions appear in the help window while the player
-* is modifying the note title. Use \n for a line break.
+* @desc These instructions appear in the help window when
+* modifying the note title. Use \n for a line break.
 * @default Press ENTER to continue.\nPress ESC to exit without saving.
 * 
 * @param detailsInstructions
 * @text Details Instructions
 * @type text
 * @parent ---Help Window Instructions---
-* @desc These instructions appear in the help window while the player
-* is modifying the note details. Use \n for a line break.
+* @desc These instructions appear in the help window when
+* modifying the note details. Use \n for a line break.
 * @default Press ESC when finished.
 *
 * @param ---Main Menu Integration---
@@ -173,8 +173,8 @@ ALOE.PlayerNotepad.version = 1.01;
 * @text Add to main menu?
 * @type boolean
 * @parent ---Main Menu Integration---
-* @desc Determines whether the notepad command is added to the main menu.
-* The command is added before the options command.
+* @desc Controls if the notepad command is added to the main
+* menu. The command is added before the options command.
 * @default true
 * 
 * @param menuCommandName
@@ -258,6 +258,9 @@ ALOE.PlayerNotepad.version = 1.01;
 *  1. The unique Key Code of the key (for example, 'a' is 65)
 *  2. The character to type when the Key Code is pressed
 *  3. The character to type when the Key Code is pressed and Shift is pressed.
+*  4. The character to type when the Key Code is pressed and Alt is pressed.
+*  5. The character to type when the Key Code is pressed and Shift + Alt 
+*     is pressed.
 * 
 * 
 * If the English QWERTY keyboard is used, no changes are required except to
@@ -509,10 +512,97 @@ ALOE.PlayerNotepad.version = 1.01;
 * Script Calls
 * ============================================================================
 * 
+* $gameNotepad.deleteNoteByKey(key)
+* -- Deletes a note with the given key.
+* --- key: unique key of the note
+* 
+* $gameNotepad.deleteAllNotes()
+* -- Deletes all notes
+* 
+* $gameNotepad.modifyNoteByKey(key, title, details, titleLocked, detailsLocked, deleteLocked, hidden)
+* -- Modifies a note with the given key
+* --- key: unique key of the note
+* --- title: title of the note
+* --- details: details of the note
+* --- titleLocked: whether the title is locked from being edited
+* --- detailsLocked: whether the details are locked from being edited
+* --- deleteLocked: whether the note is locked from being deleted
+* --- hidden: whether the note is hidden in the notepad
+* 
+* $gameNotepad.addNote(title, details, key, titleLocked, detailsLocked, deleteLocked, hidden)
+* -- Adds a new note to the notepad
+* --- title: title of the note
+* --- details: details of the note
+* --- key: unique key of the note
+* --- titleLocked: whether the title is locked from being edited
+* --- detailsLocked: whether the details are locked from being edited
+* --- deleteLocked: whether the note is locked from being deleted
+* --- hidden: whether the note is hidden in the notepad
+* 
+* $gameNotepad.lockTitle(key)
+* -- Locks the title of a note with the given key
+* --- key: unique key of the note
+* 
+* $gameNotepad.lockDetails(key)
+* -- Locks the details of a note with the given key
+* --- key: unique key of the note
+* 
+* $gameNotepad.lockDelete(key)
+* -- Locks a note with the given key from being deleted
+* --- key: unique key of the note
+* 
+* $gameNotepad.unlockTitle(key)
+* -- Unlocks the title of a note with the given key
+* --- key: unique key of the note
+* 
+* $gameNotepad.unlockDetails(key)
+* -- Unlocks the details of a note with the given key
+* --- key: unique key of the note
+* 
+* $gameNotepad.unlockDelete(key)
+* -- Unlocks a note with the given key from being deleted
+* --- key: unique key of the note
+* 
+* $gameNotepad.hide(key)
+* -- Hides a note with the given key
+* --- key: unique key of the note
+* 
+* $gameNotepad.show(key)
+* -- Unhides a note with the given key
+* ---key: unique key of the note
+* 
+* $gameNotepad.disableFeature(feature)
+* -- Disables the given feature of the notepad
+* --- feature: new, modify, or delete
+* 
+* $gameNotepad.enableFeature(feature)
+* -- Enables the given feature of the notepad
+* --- feature: new, modify, or delete
+* 
+* $gameNotepad.searchTitles(term, variableId)
+* -- Searches through the notes for a title containing the term
+* --- term: the term/words/characters to look for
+* --- variableId: the title is saved to this variable if found
+* 
+* $gameNotepad.searchDetails(term, variableId)
+* -- Searches through the notes for a details containing the term
+* --- term: the term/words/characters to look for
+* --- variableId: the title is saved to this variable if found
+* 
+* $gameNotepad.searchKey(key, term, variableId)
+* -- Searches through a specific note to see if it contains the term
+* --- key: the unique key of the note to search
+* --- term: the term/words/characters to look for
+* --- variableId: the title/details is saved to this variable if found
+* 
+* 
 * ============================================================================
 * Changelog
 * ============================================================================
-*
+* Version 1.1.0:
+* - Change version schema to Semantic Versioning
+* - Add ability to configure "alt" characters for additional flexibility
+*   for non-English keyboards.
 * Version 1.02:
 * - Characters to type are now configurable in the plugin parameters and
 *   are no longer hard-coded to an English QWERTY keyboard.
@@ -592,6 +682,18 @@ ALOE.PlayerNotepad.version = 1.01;
 * @desc The text to draw if the Key Code is pressed while SHIFT
 * is pressed
 * 
+* @param a
+* @text Alted character
+* @type text
+* @desc The text to draw if the Key Code is pressed while
+* ALT is pressed
+* 
+* @param sa
+* @text Shifted Alted Character
+* @type text
+* @desc The text to draw if the Key Code is pressed while
+* SHIFT and ALT are pressed
+* 
 */
 
 //=============================================================================
@@ -658,7 +760,7 @@ if (ALOE.PlayerNotepad.params.startingNotes) {
 // saving, and loading game objects.
 //=============================================================================
 
-$gameNotepad = null;
+var $gameNotepad = null;
 
 ALOE.Alias.DataManager_createGameObjects = DataManager.createGameObjects;
 DataManager.createGameObjects = function () {
@@ -1061,6 +1163,7 @@ Scene_Notepad.prototype.initialize = function () {
     Scene_MenuBase.prototype.initialize.call(this);
     this.storeOriginalInputMapper();
     this._isShifted = false;
+    this._isAlted = false;
     this._frameCounter = 0;
     this._blinkRate = ALOE.PlayerNotepad.params.cursorBlinkRate;
     this._tempTitle = [];
@@ -1281,6 +1384,7 @@ Scene_Notepad.prototype.createMyInputMapper = function () {
     Input.keyMapper[8] = 'backspace';
     Input.keyMapper[13] = 'enter';
     Input.keyMapper[16] = 'shift';
+    Input.keyMapper[18] = 'alt';
     Input.keyMapper[27] = 'escape';
     Input.keyMapper[32] = 'space';
     Input.keyMapper[46] = 'delete';
@@ -1311,6 +1415,7 @@ Scene_Notepad.prototype.checkTextInput = function () {
     this.checkSpecialKeys();
     this.checkArrowKeys();
     this.checkShiftKey();
+    this.checkAltKey();
     this.checkEnterKey();
     this.checkEscapeKey();
 };
@@ -1319,14 +1424,33 @@ Scene_Notepad.prototype.checkCharacters = function () {
     ALOE.PlayerNotepad.params.inputcodes.forEach(function (a) {
         if (Input.isRepeated(a.c)) {
             this.bounceCursor();
-            if (this._isShifted) {
-                this._activeWindow.addChar(a.s);
+            if (this._isShifted && this._isAlted) {
+                if (a.sa) {
+                    this._activeWindow.addChar(a.sa);
+                } else if (a.s) {
+                    this._activeWindow.addChar(a.s);
+                } else {
+                    this._activeWindow.addChar(a.c);
+                }
+            } else if (this._isShifted) {
+                if (a.s) {
+                    this._activeWindow.addChar(a.s);
+                } else {
+                    this._activeWindow.addChar(a.c);
+                }
+            } else if (this._isAlted) {
+                if (a.a) {
+                    this._activeWindow.addChar(a.a);
+                } else {
+                    this._activeWindow.addChar(a.c);
+                }
             } else {
                 this._activeWindow.addChar(a.c);
             }
         }
         if (Input.isRepeated("." + a.c)) {
             //Input class doesn't like pure numbers
+            this.bounceCursor();
             if (this._isShifted) {
                 this._activeWindow.addChar(a.s);
             } else {
@@ -1382,6 +1506,18 @@ Scene_Notepad.prototype.checkShiftKey = function () {
     } else {
         if (Input.isPressed("shift")) {
             this._isShifted = true;
+        }
+    }
+};
+
+Scene_Notepad.prototype.checkAltKey = function () {
+    if (this._isAlted) {
+        if (!Input.isPressed("alt")) {
+            this._isAlted = false;
+        }
+    } else {
+        if (Input.isPressed("alt")) {
+            this._isAlted = true;
         }
     }
 };

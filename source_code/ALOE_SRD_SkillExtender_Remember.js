@@ -13,14 +13,19 @@
  * This plugin extension fixes that behavior to improve the player experience.
  *
  * //=============================================================================
- * Version History:
+ * // Version History:
  * //=============================================================================
+ * 
+ * v1.0.1 (August 20 2018)
+ * --Fixed a bug where enemies weren't deselected (visually) when a multiple target
+ * skill selection was cancelled from an extended skill if YEP_BattleEngineCore
+ * is activated.
  * 
  * v1.0.0 (June 25 2018)
  * --Initial release
  * 
  * //=============================================================================
- * End of Help File
+ * // End of Help File
  * //=============================================================================
  * 
  * 
@@ -192,6 +197,10 @@
                 this._enemyWindow.hide();
                 this._skillWindow.show();
                 this.openSkillExtendWindow(BattleManager.actor().lastBattleSkill());
+                if (Imported.YEP_BattleEngineCore) {
+                    if (BattleManager.isAllSelection()) {BattleManager.stopAllSelection();}
+                    BattleManager.clearInputtingAction();
+                }
             } else {
                 Scene_Battle_onEnemyCancel.call(this);
             }

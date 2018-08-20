@@ -1,3 +1,8 @@
+## Table of Contents
+
+[Instructions](https://github.com/aloeguvner/rpg-maker-mv#instructions)
+[Aloe Guvner Original Plugins](https://github.com/aloeguvner/rpg-maker-mv#aloe-guvner-original-plugins)
+[YEP Extensions](https://github.com/aloeguvner/rpg-maker-mv#yep-extensions)
 
 ## Instructions
 

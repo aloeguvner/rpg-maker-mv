@@ -5,10 +5,15 @@
 // ALOE_ConditionalChoices.js
 //=============================================================================
 
+if (Imported) {
+    Imported.ALOE_ConditionalChoices = true;
+} else {
+    window.Imported = { ALOE_ConditionalChoices: true };
+}
 
 //=============================================================================
 /*:
-* @plugindesc v1.0.1
+* @plugindesc v1.1.0
 * Define conditions to hide or disable choices in the event menu
 * @author Aloe Guvner
 *
@@ -85,6 +90,8 @@
 * a[x] --> Actor #x (database id)
 * p[x] --> Party Member x (index, which starts at 0)
 * t[x] --> Troop Member x (index, which starts at 0)
+* ss[x] --> Self Switch #x   [from YEP_SelfSwVar, not normal Self Switches]
+* sv[x] --> Self Variable #x  [from YEP_SelfSwVar]
 *
 * //=========================================================================
 * // Javascript reference
@@ -122,6 +129,9 @@
 * To hide a choice if Switch # 6 is OFF:
 * My Choice <<!s[6]>>
 *
+* To hide a choice if Variable #28 is greater than 0:
+* My Choice <<v[28]>>
+*
 * To hide a choice if Variable # 2 is greater than 10:
 * My Choice <<v[2] > 10>>
 *
@@ -157,6 +167,8 @@
 * Version History
 * =========================================================================
 *
+* v1.1.0 - August 22 2018:
+* --Add support for Self Switches and Self Variables (YEP_SelfSwVar.js)
 * v1.0.1 - July 1 2018:
 * --Fixed bug with calculating the window width
 * v1.0.0 - June 26 2018:
@@ -174,6 +186,53 @@
     //=============================================================================
 
     var params = PluginManager.parameters("ALOE_ConditionalChoices");
+
+    //=============================================================================
+    // DataManager - Create Game Objects
+    //=============================================================================
+    // This magic allows us to grab Self Variable and Self Switch values from
+    // YEP_SelfSwVar with the use of square brackets to match the rest of the
+    // nomenclature. Functions would require parenthesis which is inconsistent.
+    //=============================================================================
+    if (Imported.YEP_SelfSwVar) {
+
+        var DataManager_createGameObjects = DataManager.createGameObjects;
+        DataManager.createGameObjects = function () {
+            DataManager_createGameObjects.call(this);
+            $gameTemp.selfSwVarMap = {
+                ss: {},
+                sv: {},
+                ssReduce: [],
+                svReduce: []
+            };
+            $gameTemp.selfSwVarMap.ssReduce = $dataSystem.switches.reduce(function (acc, cur, i) {
+                if (cur && cur.match(/SELF[ ]SW/i)) {
+                    acc.push(i);
+                }
+                return acc;
+            }, []);
+            $gameTemp.selfSwVarMap.ssReduce.forEach(function (ss) {
+                return Object.defineProperty($gameTemp.selfSwVarMap.ss, ss, {
+                    get: function get() {
+                        return $gameSwitches.value(parseInt(ss));
+                    }
+                });
+            });
+            $gameTemp.selfSwVarMap.svReduce = $dataSystem.variables.reduce(function (acc, cur, i) {
+                if (cur && cur.match(/SELF[ ]VAR/i)) {
+                    acc.push(i);
+                }
+                return acc;
+            }, []);
+            $gameTemp.selfSwVarMap.svReduce.forEach(function (sv) {
+                return Object.defineProperty($gameTemp.selfSwVarMap.sv, sv, {
+                    get: function get() {
+                        return $gameVariables.value(parseInt(sv));
+                    }
+                });
+            });
+        };
+    }
 
     //=============================================================================
     // New Methods - RPG Maker base engine classes
@@ -195,6 +254,15 @@
         var a = $gameActors._data;
         var p = $gameParty.members();
         var t = $gameTroop.members();
+        /*
+        A function is the straight-forward way, but requires using parenthesis
+        instead of square brackets, which breaks the pattern of the escape codes.
+        Plus, this would be too easy.
+          const ss = (switchId) => $gameSwitches.value(switchId);
+        const sv = (variableId) => $gameVariables.value(variableId);
+        */
+        var ss = $gameTemp.selfSwVarMap.ss;
+        var sv = $gameTemp.selfSwVarMap.sv;
         return choices.filter(function (choice) {
             var match = regex.exec(choice);
             if (match && match[1]) {
@@ -235,6 +303,16 @@
         var a = $gameActors._data;
         var p = $gameParty.members();
         var t = $gameTroop.members();
+        /*
+        A function is the straight-forward way, but requires using parenthesis
+        instead of square brackets, which breaks the pattern of the escape codes.
+        Plus, this would be too easy.
+        
+        const ss = (switchId) => $gameSwitches.value(switchId);
+        const sv = (variableId) => $gameVariables.value(variableId);
+        */
+        var ss = $gameTemp.selfSwVarMap.ss;
+        var sv = $gameTemp.selfSwVarMap.sv;
         this._list = this._list.map(function (listItem) {
             var disabled = void 0;
             var match = regex.exec(listItem.name);
@@ -275,12 +353,14 @@
 
     var Game_Interpreter_setupChoices = Game_Interpreter.prototype.setupChoices;
     Game_Interpreter.prototype.setupChoices = function (params) {
+        $gameTemp.setSelfSwVarEvent(this._mapId, this._eventId);
         Game_Interpreter_setupChoices.apply(this, arguments);
         var choices = $gameMessage.removeHiddenChoices(params[0]);
         $gameMessage.updateVisibleIndexes(params[0]);
         var cancelType = params[1];
         var defaultType = params.length > 2 ? params[2] : 0;
         $gameMessage.setChoices(choices, defaultType, cancelType);
+        $gameTemp.clearSelfSwVarEvent();
     };
 
     var Window_ChoiceList_makeCommandList = Window_ChoiceList.prototype.makeCommandList;

@@ -13,7 +13,7 @@ if (Imported) {
 
 //=============================================================================
 /*:
-* @plugindesc v1.1.0
+* @plugindesc v1.1.1
 * Define conditions to hide or disable choices in the event menu
 * @author Aloe Guvner
 *
@@ -167,6 +167,8 @@ if (Imported) {
 * Version History
 * =========================================================================
 *
+* v1.1.1 - August 24 2018:
+* --Bug fix, add import check for YEP_SelfSwVar
 * v1.1.0 - August 22 2018:
 * --Add support for Self Switches and Self Variables (YEP_SelfSwVar.js)
 * v1.0.1 - July 1 2018:
@@ -194,11 +196,11 @@ if (Imported) {
     // YEP_SelfSwVar with the use of square brackets to match the rest of the
     // nomenclature. Functions would require parenthesis which is inconsistent.
     //=============================================================================
-    if (Imported.YEP_SelfSwVar) {
 
-        var DataManager_createGameObjects = DataManager.createGameObjects;
-        DataManager.createGameObjects = function () {
-            DataManager_createGameObjects.call(this);
+    var DataManager_createGameObjects = DataManager.createGameObjects;
+    DataManager.createGameObjects = function () {
+        DataManager_createGameObjects.call(this);
+        if (Imported.YEP_SelfSwVar) {
             $gameTemp.selfSwVarMap = {
                 ss: {},
                 sv: {},
@@ -231,8 +233,8 @@ if (Imported) {
                     }
                 });
             });
-        };
-    }
+        }
+    };
 
     //=============================================================================
     // New Methods - RPG Maker base engine classes
@@ -261,8 +263,12 @@ if (Imported) {
           const ss = (switchId) => $gameSwitches.value(switchId);
         const sv = (variableId) => $gameVariables.value(variableId);
         */
-        var ss = $gameTemp.selfSwVarMap.ss;
-        var sv = $gameTemp.selfSwVarMap.sv;
+        var ss = [];
+        var sv = [];
+        if (Imported.YEP_SelfSwVar) {
+            ss = $gameTemp.selfSwVarMap.ss;
+            sv = $gameTemp.selfSwVarMap.sv;
+        }
         return choices.filter(function (choice) {
             var match = regex.exec(choice);
             if (match && match[1]) {
@@ -311,8 +317,12 @@ if (Imported) {
         const ss = (switchId) => $gameSwitches.value(switchId);
         const sv = (variableId) => $gameVariables.value(variableId);
         */
-        var ss = $gameTemp.selfSwVarMap.ss;
-        var sv = $gameTemp.selfSwVarMap.sv;
+        var ss = [];
+        var sv = [];
+        if (Imported.YEP_SelfSwVar) {
+            ss = $gameTemp.selfSwVarMap.ss;
+            sv = $gameTemp.selfSwVarMap.sv;
+        }
         this._list = this._list.map(function (listItem) {
             var disabled = void 0;
             var match = regex.exec(listItem.name);

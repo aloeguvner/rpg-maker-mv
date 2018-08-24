@@ -363,14 +363,18 @@ if (Imported) {
 
     var Game_Interpreter_setupChoices = Game_Interpreter.prototype.setupChoices;
     Game_Interpreter.prototype.setupChoices = function (params) {
-        $gameTemp.setSelfSwVarEvent(this._mapId, this._eventId);
+        if (Imported.YEP_SelfSwVar) {
+            $gameTemp.setSelfSwVarEvent(this._mapId, this._eventId);
+        }
         Game_Interpreter_setupChoices.apply(this, arguments);
         var choices = $gameMessage.removeHiddenChoices(params[0]);
         $gameMessage.updateVisibleIndexes(params[0]);
         var cancelType = params[1];
         var defaultType = params.length > 2 ? params[2] : 0;
         $gameMessage.setChoices(choices, defaultType, cancelType);
-        $gameTemp.clearSelfSwVarEvent();
+        if (Imported.YEP_SelfSwVar) {
+            $gameTemp.clearSelfSwVarEvent();
+        }
     };
 
     var Window_ChoiceList_makeCommandList = Window_ChoiceList.prototype.makeCommandList;
@@ -392,7 +396,7 @@ if (Imported) {
     //=============================================================================
     // Window_ChoiceList:
     // --Overwrite drawItem to draw disabled commands in a lighter color.
-    // --Overwrite callOkHandler to utilize 
+    // --Overwrite callOkHandler to utilize the correct handler
     // --Overwrite maxChoiceWidth to calculate without the regex
     //=============================================================================
 

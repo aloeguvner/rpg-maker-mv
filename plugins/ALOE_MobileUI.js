@@ -1,7 +1,7 @@
 "use strict";
 
 /*:
-* @plugindesc v1.1.0 Creates buttons on the screen for touch input
+* @plugindesc v1.2.0 Creates buttons on the screen for touch input
 * @author Aloe Guvner
 *
 * 
@@ -30,7 +30,7 @@
 * @help
 * 
 * //=============================================================================
-* Background: 
+* // Background: 
 * //=============================================================================
 * This plugin focuses on improving the user interface for mobile games created
 * in RPG Maker MV. This plugin allows the developer  to have virtual buttons 
@@ -41,7 +41,7 @@
 * on whichever screens you would like (i.e. map, menu, credits, title, etc.).
 * 
 * //=============================================================================
-* Functionality:
+* // Functionality:
 * //=============================================================================
 * 
 * This plugin can create 3 different types of buttons:
@@ -71,7 +71,7 @@
 * --This button is not mandatory.
 * 
 * //=============================================================================
-* Touch Input Methods:
+* // Touch Input Methods:
 * //=============================================================================
 *
 * The following methods can be chosen for any of the key buttons. The default
@@ -97,12 +97,26 @@
 *   This input method occurs when the button is no longer being pressed.
 *
 * //=============================================================================
-* Setup:
+* // Setup:
 * //=============================================================================
 * This plugin requires a new folder to be created within the project "img" folder.
 * The folder must be titled "mobileUI".
 * Place all UI button images into this folder, and they can be accessed from the 
 * plugin parameters.
+*
+* //=============================================================================
+* // Vibrate Parameter
+* //=============================================================================
+* Buttons can trigger a vibrate on the mobile device when pressed, controlled by
+* a parameter.
+* This parameter follows a pattern of vibrate,pause,vibrate,pause, etc.
+* Separate each time interval by a comma.
+* Examples:
+* 200 --> vibrate for 200ms
+* 100,30,100,30,100,30  --> vibrate for 100ms, pause for 30ms; repeat 2 more times
+*
+* Note that most devices support the Vibration API, but not all.
+* Additionally, this may not work in all methods of deployment.
 * 
 * //=============================================================================
 * // Plugin Commands:
@@ -146,6 +160,8 @@
 * Version History:
 * //=============================================================================
 * 
+* v1.2.0 (August 26 2018)
+* --Added ability to vibrate when button is pressed
 * v1.1.0 (June 27 2018)
 * --Fixed bug with awkward player movement on the DPad
 * --Added ability to specify the type of touch input on key buttons
@@ -271,6 +287,12 @@
  * @desc Custom Javascript code to run on button press.
  * Use the 'this' keyword to refer to the current scene.
  * 
+ * @param vibratePattern
+ * @text Vibrate Pattern
+ * @type text
+ * @default 0
+ * @desc Pattern of miliseconds to vibrate on press.
+ * Use 0 for no vibration. See help for more info.
 */
 
 /*~struct~controlButton:
@@ -411,13 +433,24 @@
 	Sprite_Button.prototype = Object.create(Sprite_Base.prototype);
 	Sprite_Button.prototype.constructor = Sprite_Button;
 
-	Sprite_Button.prototype.initialize = function (x, y, normalImage, soundEffect) {
+	Sprite_Button.prototype.initialize = function (x, y, normalImage, soundEffect, vibratePattern) {
 		Sprite_Base.prototype.initialize.call(this);
 		if (normalImage) {
 			this.bitmap = ImageManager.loadMobileUI(normalImage);
 		}
 		if (soundEffect) {
 			this._soundEffect = soundEffect;
+		}
+		if (vibratePattern) {
+			if (!window.navigator.vibrate) {
+				this._vibratePattern = 0;
+			} else if (typeof vibratePattern === 'number') {
+				this._vibratePattern = vibratePattern;
+			} else {
+				this._vibratePattern = vibratePattern.split(',').map(function (num) {
+					return parseInt(num);
+				});
+			}
 		}
 		if (isNaN(x)) {
 			x = eval(x);
@@ -622,10 +655,10 @@
 	Sprite_KeyButton.prototype = Object.create(Sprite_Button.prototype);
 	Sprite_KeyButton.prototype.constructor = Sprite_KeyButton;
 
-	Sprite_KeyButton.prototype.initialize = function (x, y, image, soundEffect, inputTrigger, customCode) {
-		var inputMethod = arguments.length > 6 && arguments[6] !== undefined ? arguments[6] : 0;
+	Sprite_KeyButton.prototype.initialize = function (x, y, image, soundEffect, inputTrigger, customCode, vibratePattern) {
+		var inputMethod = arguments.length > 7 && arguments[7] !== undefined ? arguments[7] : 0;
 
-		Sprite_Button.prototype.initialize.call(this, x, y, image, soundEffect);
+		Sprite_Button.prototype.initialize.call(this, x, y, image, soundEffect, vibratePattern);
 		if (inputTrigger) {
 			this._inputTrigger = inputTrigger;
 		}
@@ -664,6 +697,9 @@
 			if (this.containsPoint(point)) {
 				if (this._soundEffect) {
 					AudioManager.playSe(this._soundEffect);
+				}
+				if (this._vibratePattern) {
+					window.navigator.vibrate(this._vibratePattern);
 				}
 				if (this._customFunction) {
 					this._customFunction();
@@ -809,7 +845,7 @@
 				for (var i = 0; i < params.length; i++) {
 					if (params[i].activeScenes.length > 0 && params[i].activeScenes.contains(this.constructor)) {
 						var a = params[i];
-						this._keyButtons[a.name.toLowerCase()] = new Sprite_KeyButton(a.x, a.y, a.image, a.soundEffect, a.inputTrigger.toLowerCase(), a.customCode, a.inputMethod);
+						this._keyButtons[a.name.toLowerCase()] = new Sprite_KeyButton(a.x, a.y, a.image, a.soundEffect, a.inputTrigger.toLowerCase(), a.customCode, a.vibratePattern, a.inputMethod);
 						this.addChild(this._keyButtons[a.name.toLowerCase()]);
 					}
 				}

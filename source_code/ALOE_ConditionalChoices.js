@@ -3,7 +3,7 @@
 // ALOE_ConditionalChoices.js
 //=============================================================================
 
-if (Imported) {
+if (typeof Imported !== 'undefined') {
     Imported.ALOE_ConditionalChoices = true;
 } else {
     window.Imported = {ALOE_ConditionalChoices: true};
@@ -11,7 +11,7 @@ if (Imported) {
 
 //=============================================================================
 /*:
-* @plugindesc v1.1.1
+* @plugindesc v1.2.0
 * Define conditions to hide or disable choices in the event menu
 * @author Aloe Guvner
 *
@@ -19,14 +19,12 @@ if (Imported) {
 * @text Start Pattern
 * @type text
 * @desc Pattern that indicates the start of the conditions.
-* Recommended not to change this unless necessary.
 * @default <<
 *
 * @param patternEnd
 * @text End Pattern
 * @type text
 * @desc Pattern that indicates the end of the conditions.
-* Recommended not to change this unless necessary.
 * @default >>
 * 
 * @help
@@ -165,6 +163,8 @@ if (Imported) {
 * Version History
 * =========================================================================
 *
+* v1.2.0 - September 9 2018:
+* --Update variable retrieval to use getters to avoid undefined values
 * v1.1.1 - August 24 2018:
 * --Bug fix, add import check for YEP_SelfSwVar
 * v1.1.0 - August 22 2018:
@@ -199,31 +199,68 @@ if (Imported) {
     const DataManager_createGameObjects = DataManager.createGameObjects;
     DataManager.createGameObjects = function() {
         DataManager_createGameObjects.call(this);
+        $gameTemp.createSelfSwVarMap();
+        $gameTemp.createVariableGetters();
+    };
+
+    //=============================================================================
+    // Game_Temp - Create map of Self Switches & Self Variables
+    //=============================================================================
+    // Create an object map of the self variables and self switches, create getter
+    // property to access the variable later.
+    //=============================================================================
+
+    Game_Temp.prototype.createSelfSwVarMap = function() {
         if (Imported.YEP_SelfSwVar) {
-            $gameTemp.selfSwVarMap = {
+            this.selfSwVarMap = {
                 ss: {},
                 sv: {},
                 ssReduce: [],
                 svReduce: []
             };
-            $gameTemp.selfSwVarMap.ssReduce = $dataSystem.switches.reduce((acc, cur, i) => {
-                if (cur && cur.match(/SELF[ ]SW/i)) {acc.push(i);}
-                return acc;
-            }, []);
-            $gameTemp.selfSwVarMap.ssReduce.forEach(ss => Object.defineProperty(
-                $gameTemp.selfSwVarMap.ss, ss, {
-                    get: function() {return $gameSwitches.value(parseInt(ss))}
-                }
-            ));
-            $gameTemp.selfSwVarMap.svReduce = $dataSystem.variables.reduce((acc, cur, i) => {
-                if (cur && cur.match(/SELF[ ]VAR/i)) {acc.push(i);}
-                return acc;
-            }, []);
-            $gameTemp.selfSwVarMap.svReduce.forEach(sv => Object.defineProperty(
-                $gameTemp.selfSwVarMap.sv, sv, {
-                    get: function() {return $gameVariables.value(parseInt(sv))}
-                }
-            ));
+            this.createSelfSwVarReduce();
+            this.createSelfSwVarGetters();
+        }
+    };
+
+    Game_Temp.prototype.createSelfSwVarReduce = function() {
+        this.selfSwVarMap.ssReduce = $dataSystem.switches.reduce((acc, cur, i) => {
+            if (cur && cur.match(/SELF[ ]SW/i)) {acc.push(i);}
+            return acc;
+        }, []);
+        this.selfSwVarMap.svReduce = $dataSystem.variables.reduce((acc, cur, i) => {
+            if (cur && cur.match(/SELF[ ]VAR/i)) {acc.push(i);}
+            return acc;
+        }, []);
+    };
+
+    Game_Temp.prototype.createSelfSwVarGetters = function() {
+        this.selfSwVarMap.ssReduce.forEach(ss => Object.defineProperty(
+            this.selfSwVarMap.ss, ss, {
+                get: function() {return $gameSwitches.value(parseInt(ss))}
+            }
+        ));
+        this.selfSwVarMap.svReduce.forEach(sv => Object.defineProperty(
+            this.selfSwVarMap.sv, sv, {
+                get: function() {return $gameVariables.value(parseInt(sv))}
+            }
+        ));
+    };
+
+    //=============================================================================
+    // Game_Temp - Create getters for Variables
+    //=============================================================================
+    // To avoid issues where unset variables return an undefined value using the
+    // v[x] notation in conditions, create an object with getter properties for the
+    // variables.
+    //=============================================================================
+
+    Game_Temp.prototype.createVariableGetters = function() {
+        this.variableMap = {};
+        for (let i = 1; i < $dataSystem.variables.length; i++) {
+            Object.defineProperty(this.variableMap, i, {
+                get: function() {return $gameVariables.value(parseInt(i))}
+            });
         }
     };
 
@@ -241,24 +278,25 @@ if (Imported) {
     Game_Message.prototype.removeHiddenChoices = function (choices) {
         const regex = new RegExp(`${params.patternStart}(.*)${params.patternEnd}`);
         const s = $gameSwitches._data;
-        const v = $gameVariables._data;
         const a = $gameActors._data;
         const p = $gameParty.members();
         const t = $gameTroop.members();
         /*
         A function is the straight-forward way, but requires using parenthesis
         instead of square brackets, which breaks the pattern of the escape codes.
-        Plus, this would be too easy.
 
         const ss = (switchId) => $gameSwitches.value(switchId);
         const sv = (variableId) => $gameVariables.value(variableId);
+
+        v1.2.0: Regular variables also use getters to avoid undefined values.
         */
-       let ss = [];
-       let sv = [];
-       if (Imported.YEP_SelfSwVar) {
-        ss = $gameTemp.selfSwVarMap.ss;
-        sv = $gameTemp.selfSwVarMap.sv;
-       }
+        let ss = [];
+        let sv = [];
+        if (Imported.YEP_SelfSwVar) {
+            ss = $gameTemp.selfSwVarMap.ss;
+            sv = $gameTemp.selfSwVarMap.sv;
+        }
+        const v = $gameTemp.variableMap;
         return choices
             .filter(choice => {
                 const match = regex.exec(choice);
@@ -294,24 +332,25 @@ if (Imported) {
     Window_ChoiceList.prototype.markDisabledCommands = function () {
         const regex = new RegExp(`${params.patternStart}.*,(.*)${params.patternEnd}`);
         const s = $gameSwitches._data;
-        const v = $gameVariables._data;
         const a = $gameActors._data;
         const p = $gameParty.members();
         const t = $gameTroop.members();
         /*
         A function is the straight-forward way, but requires using parenthesis
         instead of square brackets, which breaks the pattern of the escape codes.
-        Plus, this would be too easy.
         
         const ss = (switchId) => $gameSwitches.value(switchId);
         const sv = (variableId) => $gameVariables.value(variableId);
+
+        v1.2.0: Regular variables also use getters to avoid undefined values.
         */
-       let ss = [];
-       let sv = [];
-       if (Imported.YEP_SelfSwVar) {
-        ss = $gameTemp.selfSwVarMap.ss;
-        sv = $gameTemp.selfSwVarMap.sv;
-       }
+        let ss = [];
+        let sv = [];
+        if (Imported.YEP_SelfSwVar) {
+            ss = $gameTemp.selfSwVarMap.ss;
+            sv = $gameTemp.selfSwVarMap.sv;
+        }
+        const v = $gameTemp.variableMap;
         this._list = this._list.map(listItem => {
             let disabled;
             const match = regex.exec(listItem.name);

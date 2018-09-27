@@ -1,5 +1,5 @@
 /*:
-* @plugindesc v1.2.1 Creates buttons on the screen for touch input
+* @plugindesc v1.2.3 Creates buttons on the screen for touch input
 * @author Aloe Guvner
 *
 * 
@@ -163,7 +163,11 @@
 * //=============================================================================
 * Version History:
 * //=============================================================================
-* 
+* v1.2.3 (September 27 2018)
+* --Fixed a bug where buttons that the player had chosen to hide would reappear
+*   after a game message.
+* v1.2.2 (September 27 2018)
+* --Fixed a bug where buttons could be pressed before they were fully visible
 * v1.2.1 (September 27 2018)
 * --Added an "instant" feature to hide/show for smoother cutscene transitions
 * v1.2.0 (August 26 2018)

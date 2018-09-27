@@ -995,7 +995,11 @@
 	Alias.Window_Message_terminateMessage = Window_Message.prototype.terminateMessage;
 	Window_Message.prototype.terminateMessage = function () {
 		Alias.Window_Message_terminateMessage.call(this);
-		SceneManager._scene.showMobileUI();
+		if (SceneManager._scene._controlButton && SceneManager._scene._controlButton._buttonsHidden) {
+			SceneManager._scene._controlButton.show();
+		} else {
+			SceneManager._scene.showMobileUI();
+		}
 	};
 
 	//=============================================================================

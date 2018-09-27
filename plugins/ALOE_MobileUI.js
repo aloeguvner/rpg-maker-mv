@@ -486,6 +486,9 @@
 		if (this.moving) {
 			this.updatePosition();
 		}
+		if (!this.active) {
+			this.updateActive();
+		}
 	};
 
 	Sprite_Button.prototype.updateTouchInput = function () {};
@@ -495,6 +498,12 @@
 			this.opacity -= 255 / this._duration;
 		} else if (!this._hiding && this.opacity < 255) {
 			this.opacity += 255 / this._duration;
+		}
+	};
+
+	Sprite_Button.prototype.updateActive = function () {
+		if (this.opacity === 255) {
+			this.active = true;
 		}
 	};
 
@@ -520,7 +529,6 @@
 
 	Sprite_Button.prototype.show = function () {
 		this._hiding = false;
-		this.active = true;
 	};
 
 	Sprite_Button.prototype.hideInstant = function () {

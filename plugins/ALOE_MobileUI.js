@@ -1,7 +1,7 @@
 "use strict";
 
 /*:
-* @plugindesc v1.2.0 Creates buttons on the screen for touch input
+* @plugindesc v1.2.1 Creates buttons on the screen for touch input
 * @author Aloe Guvner
 *
 * 
@@ -127,28 +127,34 @@
 * //=============================================================================
 * hide: hides the specified button
 * //=============================================================================
-* Allowed arguments:
+* Allowed first arguments:
 * -DPad
 * -Control
 * -Any key button defined in the parameters
+*
+* Allowed second arguments:
+* -instant (optional, this will hide the button instantly)
 * 
 * Examples:
 * MobileUI hide DPad
-* mobileui hide Ok
+* mobileui hide Ok instant
 * MobileUI hide PageDown
 * 
 * //=============================================================================
 * show: shows the specified button
 * //=============================================================================
-* Allowed arguments:
+* Allowed first arguments:
 * -DPad
 * -Control
 * -Any key button defined in the parameters
 * 
+* Allowed second arguments:
+* -instant (optional, this will show the button instantly)
+*
 * Examples:
 * MobileUI show dpad
 * mobileui show ok
-* MobileUI show PageUp
+* MobileUI show PageUp instant
 * 
 * //=============================================================================
 * Terms of Use:
@@ -160,6 +166,8 @@
 * Version History:
 * //=============================================================================
 * 
+* v1.2.1 (September 27 2018)
+* --Added an "instant" feature to hide/show for smoother cutscene transitions
 * v1.2.0 (August 26 2018)
 * --Added ability to vibrate when button is pressed
 * v1.1.0 (June 27 2018)
@@ -512,6 +520,18 @@
 
 	Sprite_Button.prototype.show = function () {
 		this._hiding = false;
+		this.active = true;
+	};
+
+	Sprite_Button.prototype.hideInstant = function () {
+		this._hiding = true;
+		this.opacity = 0;
+		this.active = false;
+	};
+
+	Sprite_Button.prototype.showInstant = function () {
+		this._hiding = false;
+		this.opacity = 255;
 		this.active = true;
 	};
 
@@ -986,17 +1006,29 @@
 					switch (args[1].toLowerCase()) {
 						case "dpad":
 							if (scene._directionalPad) {
-								scene._directionalPad.hide();
+								if (args[2] && args[2].toLowerCase() === 'instant') {
+									scene._directionalPad.hideInstant();
+								} else {
+									scene._directionalPad.hide();
+								}
 							}
 							break;
 						case "control":
 							if (scene._controlButton) {
-								scene._controlButton.hide();
+								if (args[2] && args[2].toLowerCase() === 'instant') {
+									scene._controlButton.hideInstant();
+								} else {
+									scene._controlButton.hide();
+								}
 							}
 							break;
 						default:
 							if (scene._keyButtons[args[1].toLowerCase()]) {
-								scene._keyButtons[args[1].toLowerCase()].hide();
+								if (args[2] && args[2].toLowerCase() === 'instant') {
+									scene._keyButtons[args[1].toLowerCase()].hideInstant();
+								} else {
+									scene._keyButtons[args[1].toLowerCase()].hide();
+								}
 							}
 							break;
 					}
@@ -1005,17 +1037,29 @@
 					switch (args[1].toLowerCase()) {
 						case "dpad":
 							if (scene._directionalPad) {
-								scene._directionalPad.show();
+								if (args[2] && args[2].toLowerCase() === 'instant') {
+									scene._directionalPad.showInstant();
+								} else {
+									scene._directionalPad.show();
+								}
 							}
 							break;
 						case "control":
 							if (scene._controlButton) {
-								scene._controlButton.show();
+								if (args[2] && args[2].toLowerCase() === 'instant') {
+									scene._controlButton.showInstant();
+								} else {
+									scene._controlButton.show();
+								}
 							}
 							break;
 						default:
 							if (scene._keyButtons[args[1].toLowerCase()]) {
-								scene._keyButtons[args[1].toLowerCase()].show();
+								if (args[2] && args[2].toLowerCase() === 'instant') {
+									scene._keyButtons[args[1].toLowerCase()].showInstant();
+								} else {
+									scene._keyButtons[args[1].toLowerCase()].show();
+								}
 							}
 							break;
 					}

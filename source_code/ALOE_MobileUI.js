@@ -1,5 +1,5 @@
 /*:
-* @plugindesc v1.2.3 Creates buttons on the screen for touch input
+* @plugindesc v1.3.0 Creates buttons on the screen for touch input
 * @author Aloe Guvner
 *
 * 
@@ -24,6 +24,19 @@
 * @desc Duration of hiding the buttons (number of frames)
 * for the buttons to fade and un-fade.
 * @default 20
+*
+* @param disableTouchWindows
+* @text Disable Touch Selectable Windows
+* @type text[]
+* @desc Disable the touch input for selectable windows
+* in these scenes.
+* @default ["Scene_Menu"]
+*
+* @param disableTouchMovement
+* @text Disable Touch Movement
+* @type boolean
+* @desc Disable touch movement on the map when a DPad is active.
+* @default false
 * 
 * @help
 * 
@@ -163,6 +176,9 @@
 * //=============================================================================
 * Version History:
 * //=============================================================================
+* v1.3.0 (September 27 2018)
+* --Added a parameter to choose to disable the normal touch input on any chosen
+*   scene. The only touch input enabled on these scenes is the mobile UI.
 * v1.2.3 (September 27 2018)
 * --Fixed a bug where buttons that the player had chosen to hide would reappear
 *   after a game message.
@@ -857,11 +873,16 @@
 	//=============================================================================
 	// Scene_Map
 	//=============================================================================
+	// If map movement is disabled from the parameters, return.
 	// If an active button is pressed, don't do the usual map movement.
 	//=============================================================================
 
 	Alias.Scene_Map_processMapTouch = Scene_Map.prototype.processMapTouch;
 	Scene_Map.prototype.processMapTouch = function () {
+		if (Parameters['disableTouchMovement'] 
+		&& this._directionalPad && this._directionalPad.active) {
+			return;
+		}
 		if (TouchInput.isTriggered()) {
 			const point = new Point(TouchInput.x, TouchInput.y);
 			if (!!this._controlButton) {
@@ -881,6 +902,20 @@
 			}
 		}
 		Alias.Scene_Map_processMapTouch.call(this);
+	};
+
+	//=============================================================================
+	// Window_Selectable
+	//=============================================================================
+	// Disable Touch Input on selectable windows if configured in the parameters.
+	//=============================================================================
+
+	Alias.Window_Selectable_processTouch = Window_Selectable.prototype.processTouch;
+	Window_Selectable.prototype.processTouch = function() {
+		if (Parameters['disableTouchWindows'].contains(SceneManager._scene.constructor.name)) {
+			return;
+		}
+		Alias.Window_Selectable_processTouch.call(this);
 	};
 
 	//=============================================================================

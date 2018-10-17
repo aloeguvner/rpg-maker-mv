@@ -16,7 +16,7 @@ ALOE.PlayerNotepad.version = '1.1.0';
 //=============================================================================
 
 /*:
-* @plugindesc v1.1.0 Creates a new scene where players can record notes
+* @plugindesc v1.2.0 Creates a new scene where players can record notes
 * in a notepad using their keyboard.
 * @author Aloe Guvner
 *
@@ -264,9 +264,9 @@ ALOE.PlayerNotepad.version = '1.1.0';
 * 
 * 
 * If the English QWERTY keyboard is used, no changes are required except to
-* add the @ symbol for the 'shifted' version of the number 2. The reason is
-* that the editor does not allow the @ symbol to be in the default values of
-* parameters.
+* add the (at) symbol for the 'shifted' version of the number 2. The reason is
+* that the editor does not allow the (at) symbol to be in the default values of
+* parameters. In fact, the (at) symbol cannot even be used in the help section.
 * 
 * For keyboards that do not follow the English QWERTY format (such as 
 * AZERTY or QWERTZ keyboards), the plugin parameter can be changed to match
@@ -361,6 +361,12 @@ ALOE.PlayerNotepad.version = '1.1.0';
 * 
 *    <>notepad stage add
 * 
+* To modify the note by appending text to the title or details, use the
+* following plugin command. For this command, the key must exist otherwise
+* nothing will happen.
+* 
+*    <>notepad stage append
+* 
 * 
 * Example Add.
 * The following example plugin commands creates a new note with a key of "alchemy", title and
@@ -380,6 +386,14 @@ ALOE.PlayerNotepad.version = '1.1.0';
 *    <>notepad stage key password
 *    <>notepad stage detailslocked true
 *    <>notepad stage add
+* 
+* Example Append.
+* The following example plugin commands will locate an already existing note with a key of
+* "crime_clues", and append the details with "Fingerprint found on the handle"
+* 
+*    <>notepad stage details Fingerprint found on the handle
+*    <>notepad stage key crime_clues
+*    <>notepad stage append
 * 
 * =====Locking Individual Notes=====
 * 
@@ -529,6 +543,12 @@ ALOE.PlayerNotepad.version = '1.1.0';
 * --- deleteLocked: whether the note is locked from being deleted
 * --- hidden: whether the note is hidden in the notepad
 * 
+* $gameNotepad.appendNoteByKey(key, title, details)
+* -- Appends to a note with the given key
+* --- key: unique key of the note
+* --- title: text to append to the existing title
+* --- details: details to append to the existing details
+* 
 * $gameNotepad.addNote(title, details, key, titleLocked, detailsLocked, deleteLocked, hidden)
 * -- Adds a new note to the notepad
 * --- title: title of the note
@@ -599,6 +619,10 @@ ALOE.PlayerNotepad.version = '1.1.0';
 * ============================================================================
 * Changelog
 * ============================================================================
+* Version 1.2.0:
+* - Add plugin command and function to append to notes rather than replacing
+*   their contents.
+* - Fix the help section so all of it shows in the Plugin Manager.
 * Version 1.1.0:
 * - Change version schema to Semantic Versioning
 * - Add ability to configure "alt" characters for additional flexibility
@@ -881,6 +905,18 @@ Game_Notepad.prototype.modifyNoteByKey = function (key, title, details, titleLoc
     this._data[index].detailsLocked = detailsLocked !== undefined ? detailsLocked : this._data[index].detailsLocked;
     this._data[index].deleteLocked = deleteLocked !== undefined ? deleteLocked : this._data[index].deleteLocked;
     this._data[index].hidden = hidden !== undefined ? hidden : this._data[index].hidden;
+};
+
+Game_Notepad.prototype.appendNoteByKey = function (key, title, details) {
+    var index = this.allNotes().map(function (note) {
+        return note.key;
+    }).indexOf(key);
+    if (title) {
+        this._data[index].title[0] += title;
+    }
+    if (details) {
+        this._data[index].details = this._data[index].details.concat(details);
+    }
 };
 
 Game_Notepad.prototype.deleteNoteById = function (id) {
@@ -2232,6 +2268,16 @@ Game_Interpreter.prototype.pluginCommand = function (command, args) {
                             $gameNotepad.clearStage();
                         }
                         break;
+                    case "append":
+                        var key = $gameNotepad.getStage("key");
+                        var title = $gameNotepad.getStage("title");
+                        var details = $gameNotepad.getStage("details");
+                        if (key) {
+                            if ($gameNotepad.keyExists(key)) {
+                                $gameNotepad.appendNoteByKey(key, title, details);
+                            }
+                            $gameNotepad.clearStage();
+                        }
                     default:
                         break;
                 }

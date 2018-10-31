@@ -1,7 +1,7 @@
 "use strict";
 
 /*:
-* @plugindesc v1.3.0 Creates buttons on the screen for touch input
+* @plugindesc v1.3.1 Creates buttons on the screen for touch input
 * @author Aloe Guvner
 *
 * 
@@ -38,6 +38,13 @@
 * @text Disable Touch Movement
 * @type boolean
 * @desc Disable touch movement on the map when a DPad is active.
+* @default false
+*
+* @param enableDiagonalInput
+* @text Enable Diagonal Input
+* @type boolean
+* @desc If the player touches in the corners of the D-Pad, both
+* direction inputs are recorded. See info in help file.
 * @default false
 * 
 * @help
@@ -168,6 +175,19 @@
 * MobileUI show dpad
 * mobileui show ok
 * MobileUI show PageUp instant
+*
+* //=============================================================================
+* Diagonal Movement Parameter
+* //=============================================================================
+*
+* There is a parameter that controls whether diagonal input is recorded from the
+* D-Pad. This is not a diagonal movement plugin! This parameter merely controls
+* whether touching on the top left will add the input values of both "top" and
+* "left" to the input state. Other diagonal movement plugins would consume these
+* input values to move the character diagonally.
+*
+* If your game uses diagonal movement, this parameter must be on. If your game
+* does not use diagonal movement, it is recommended to turn this parameter off.
 * 
 * //=============================================================================
 * Terms of Use:
@@ -178,6 +198,9 @@
 * //=============================================================================
 * Version History:
 * //=============================================================================
+* v1.3.1 (October 30 2018)
+* --Added a parameter to control whether diagonal movement is detected as a
+*   possible fix for a hard to reproduce movement bug.
 * v1.3.0 (September 27 2018)
 * --Added a parameter to choose to disable the normal touch input on any chosen
 *   scene. The only touch input enabled on these scenes is the mobile UI.
@@ -629,18 +652,22 @@
 				var index = this.whichIndex(point);
 				switch (index) {
 					case 0:
-						Input._currentState["up"] = true;
-						Input._currentState["left"] = true;
-						this._lastInput = "up-left";
+						if (Parameters.enableDiagonalInput) {
+							Input._currentState["up"] = true;
+							Input._currentState["left"] = true;
+							this._lastInput = "up-left";
+						}
 						break;
 					case 1:
 						Input._currentState["up"] = true;
 						this._lastInput = "up";
 						break;
 					case 2:
-						Input._currentState["right"] = true;
-						Input._currentState["up"] = true;
-						this._lastInput = "up-right";
+						if (Parameters.enableDiagonalInput) {
+							Input._currentState["right"] = true;
+							Input._currentState["up"] = true;
+							this._lastInput = "up-right";
+						}
 						break;
 					case 3:
 						Input._currentState["left"] = true;
@@ -653,18 +680,22 @@
 						this._lastInput = "right";
 						break;
 					case 6:
-						Input._currentState["left"] = true;
-						Input._currentState["down"] = true;
-						this._lastInput = "down-left";
+						if (Parameters.enableDiagonalInput) {
+							Input._currentState["left"] = true;
+							Input._currentState["down"] = true;
+							this._lastInput = "down-left";
+						}
 						break;
 					case 7:
 						Input._currentState["down"] = true;
 						this._lastInput = "down";
 						break;
 					case 8:
-						Input._currentState["down"] = true;
-						Input._currentState["right"] = true;
-						this._lastInput = "down-right";
+						if (Parameters.enableDiagonalInput) {
+							Input._currentState["down"] = true;
+							Input._currentState["right"] = true;
+							this._lastInput = "down-right";
+						}
 						break;
 					default:
 						break;

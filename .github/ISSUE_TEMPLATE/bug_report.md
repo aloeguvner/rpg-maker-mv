@@ -4,6 +4,9 @@ about: Plugin Issue/Bug Report
 
 ---
 
+**Plugin Name**
+Which plugin is this issue for?
+
 **Describe the bug**
 A clear and concise description of what the bug is.
 

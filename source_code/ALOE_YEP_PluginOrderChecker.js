@@ -414,6 +414,7 @@
 		"YEP_PartySystem",
 		"YEP_X_ActorPartySwitch",
 		"YEP_RowFormation",
+		"YEP_StatAllocation",
 		"YEP_StealSnatch",
 		//===Movement Plugins===
 		"YEP_MoveRouteCore",
@@ -447,6 +448,7 @@
 		"YEP_EventChasePlayer",
 		"YEP_X_EventChaseStealth",
 		"YEP_EventMiniLabel",
+		"YEP_EventSpriteOffset",
 		"YEP_EventTimerControl",
 		"YEP_ExternalLinks",
 		"YEP_FloorDamage",

@@ -279,48 +279,13 @@
 
 //=============================================================================
 // Generate the list of all YEP Plugins in the correct order, known as the 'key'.
-// A template to consume an API is included, although there is no API to use.
-// If Yanfly develops an API to provide the order of plugins from their website,
-// this could be modified.
 //
 // Otherwise, the ordered 'key' was manually determined from the Yanfly website
-// on May 11, 2018.
+// on December 4, 2018.
 //=============================================================================
 
     var orderedKey = function() {
-		//At this time there is no API. Always use the manual key.
-        if (false) {
-            try {
-                return apiKey();
-            } catch (e) {
-                console.log("API Error:\n" +
-                            e + 
-                            "\nRetrieving plugin order manually.");
-                return manualKey();
-            }
-        } else {
-            return manualKey();
-        }
-    };
-
-    var apiKey = function() {
-        // No API exists to gather this data from the Yanfly website.
-		// If such an API existed, this template could be used to consume it.
-		// This function is not currently used.
-        var request = new XMLHttpRequest();
-        var url = `http://api.yanfly.moe/yep?q=${api}`;
-
-        request.onreadystatechange = function() {
-            if (this.readyState === 4) {
-                if (this.status === 200) {
-                    var response = JSON.parse(this.responseText);
-                    //A function to cleanse the response.
-                    return cleanseResponse(response);
-                } else {
-                    //API error.
-                }
-            }
-        };
+        return manualKey();
     };
 
 	var manualKey = function() {

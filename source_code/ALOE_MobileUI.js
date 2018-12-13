@@ -1,5 +1,5 @@
 /*:
-* @plugindesc v1.3.1 Creates buttons on the screen for touch input
+* @plugindesc v1.4.0 Creates buttons on the screen for touch input
 * @author Aloe Guvner
 *
 * 
@@ -81,10 +81,11 @@
 * 
 * 
 * -Control button 
-* --The control button, if pressed, will collapse and hide all other buttons on the screen.
-* --If pressed again, it will expand and show all other buttons on the screen.
-* --This will allow the player to decide between using the Mobile UI buttons or another form
-* of touch input.
+* --The control button, if pressed, will collapse and hide other buttons on the screen.
+* --If pressed again, it will expand and show other buttons on the screen.
+* --You can configure which other buttons are affected. This can allow you to create 
+*   a dynamic menu where pressing this button opens other buttons for "Items", "Save",
+*   etc., while leaving the DPad or any other button active all of the time.
 * --The scenes that this button appears in can be defined.
 * --This button is not mandatory.
 * 
@@ -196,6 +197,9 @@
 * //=============================================================================
 * Version History:
 * //=============================================================================
+* v1.4.0 (December 13 2018)
+* --Added ability to configure which buttons are affected by the "control" button
+*   Can be used to create dynamic menus.
 * v1.3.1 (October 30 2018)
 * --Added a parameter to control whether diagonal movement is detected as a
 *   possible fix for a hard to reproduce movement bug.
@@ -378,6 +382,20 @@
  * @type struct<soundEffect>
  * @desc Sound Effect to play when button is pressed.
  * Depending on scenario, SE might already play. Test first.
+ * 
+ * @param buttonsToHide
+ * @text Buttons To Show / Hide
+ * @type text[]
+ * @desc A list of the Key Buttons to show and hide when
+ * this button is pressed. Leave empty to hide all.
+ * @default []
+ * 
+ * @param hideDPad
+ * @text Show / Hide DPad?
+ * @type boolean
+ * @desc Controls whether the DPad is affected when
+ * this button is pressed.
+ * @default true
  * 
 */
 
@@ -788,18 +806,50 @@
 	};
 
 	Sprite_ControlButton.prototype.showAllButtons = function () {
-		Object.keys(this._keyButtons).forEach(a => this._keyButtons[a].show());
-		Object.keys(this._keyButtons).forEach(a => this._keyButtons[a].expand());
-		if (this._directionalPad) { this._directionalPad.show(); }
-		if (this._directionalPad) { this._directionalPad.expand(); }
+		const params = Parameters["controlButtonSettings"];
+		if (params.buttonsToHide.length > 0) {
+			params.buttonsToHide.forEach(buttonName => {
+				if (!this._keyButtons[buttonName]) {
+					console.error(`${buttonName} is not a key button, check your Mobile UI plugin configuration.`);
+					return;
+				}
+				this._keyButtons[buttonName].show();
+				this._keyButtons[buttonName].expand();
+			});
+		} else {
+			Object.values(this._keyButtons).forEach(button => {
+				button.show();
+				button.expand();
+			});
+		}
+		if (params.hideDPad && this._directionalPad) { 
+			this._directionalPad.show(); 
+			this._directionalPad.expand();
+		}
 		this._buttonsHidden = false;
 	};
 
 	Sprite_ControlButton.prototype.hideAllButtons = function () {
-		Object.keys(this._keyButtons).forEach(a => this._keyButtons[a].hide());
-		Object.keys(this._keyButtons).forEach(a => this._keyButtons[a].collapse(this.x, this.y));
-		if (this._directionalPad) { this._directionalPad.hide(); }
-		if (this._directionalPad) { this._directionalPad.collapse(this.x, this.y); }
+		const params = Parameters["controlButtonSettings"];
+		if (params.buttonsToHide.length > 0) {
+			params.buttonsToHide.forEach(buttonName => {
+				if (!this._keyButtons[buttonName]) {
+					console.error(`${buttonName} is not a key button, check your Mobile UI plugin configuration.`);
+					return;
+				}
+				this._keyButtons[buttonName].hide();
+				this._keyButtons[buttonName].collapse(this.x, this.y);
+			});
+		} else {
+			Object.values(this._keyButtons).forEach(button => {
+				button.hide();
+				button.collapse(this.x, this.y);
+			});
+		}
+		if (params.hideDPad && this._directionalPad) { 
+			this._directionalPad.hide(); 
+			this._directionalPad.collapse(this.x, this.y);
+		}
 		this._buttonsHidden = true;
 	};
 

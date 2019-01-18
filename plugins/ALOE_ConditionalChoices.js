@@ -90,6 +90,7 @@ if (typeof Imported !== 'undefined') {
 * t[x] --> Troop Member x (index, which starts at 0)
 * ss[x] --> Self Switch #x   [from YEP_SelfSwVar, not normal Self Switches]
 * sv[x] --> Self Variable #x  [from YEP_SelfSwVar]
+* gp    --> $gameParty variable
 *
 * //=========================================================================
 * // Javascript reference
@@ -165,6 +166,8 @@ if (typeof Imported !== 'undefined') {
 * Version History
 * =========================================================================
 *
+* v1.2.1 - January 17 2019:
+* --Add an abbreviation for $gameParty
 * v1.2.0 - September 9 2018:
 * --Update variable retrieval to use getters to avoid undefined values
 * v1.1.1 - August 24 2018:
@@ -303,6 +306,7 @@ if (typeof Imported !== 'undefined') {
         var a = $gameActors._data;
         var p = $gameParty.members();
         var t = $gameTroop.members();
+        var gp = $gameParty;
         /*
         A function is the straight-forward way, but requires using parenthesis
         instead of square brackets, which breaks the pattern of the escape codes.
@@ -356,6 +360,7 @@ if (typeof Imported !== 'undefined') {
         var a = $gameActors._data;
         var p = $gameParty.members();
         var t = $gameTroop.members();
+        var gp = $gameParty;
         /*
         A function is the straight-forward way, but requires using parenthesis
         instead of square brackets, which breaks the pattern of the escape codes.

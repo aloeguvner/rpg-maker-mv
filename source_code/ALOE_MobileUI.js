@@ -1,5 +1,5 @@
 /*:
-* @plugindesc v1.4.0 Creates buttons on the screen for touch input
+* @plugindesc v2.0.0 Creates buttons on the screen for touch input
 * @author Aloe Guvner
 *
 * 
@@ -43,6 +43,13 @@
 * @type boolean
 * @desc If the player touches in the corners of the D-Pad, both
 * direction inputs are recorded. See info in help file.
+* @default false
+*
+* @param enableDPadDebugWindow
+* @text Enable DPad Debug Window
+* @type boolean
+* @desc Shows a window with the current D-Pad state. For 
+* plugin debugging only, don't enable
 * @default false
 * 
 * @help
@@ -197,6 +204,8 @@
 * //=============================================================================
 * Version History:
 * //=============================================================================
+* v2.0.0 (April 25 2019)
+* --Clears input state on transfer to mitigate stuck DPad input bug
 * v1.4.0 (December 13 2018)
 * --Added ability to configure which buttons are affected by the "control" button
 *   Can be used to create dynamic menus.
@@ -635,7 +644,7 @@
 
 	Sprite_DirectionalPad.prototype.initialize = function (x, y, image, soundEffect) {
 		Sprite_Button.prototype.initialize.call(this, x, y, image, soundEffect);
-		this._lastInput = '';
+		this._lastInput = [];
 		this._hiding = false;
 	};
 
@@ -651,46 +660,50 @@
 						if (Parameters.enableDiagonalInput) {
 							Input._currentState["up"] = true;
 							Input._currentState["left"] = true;
-							this._lastInput = "up-left";
+							this._lastInput.push("up");
+							this._lastInput.push("left");
 						}
 						break;
 					case 1:
 						Input._currentState["up"] = true;
-						this._lastInput = "up";
+						this._lastInput.push("up");
 						break;
 					case 2:
 						if (Parameters.enableDiagonalInput) {
 							Input._currentState["right"] = true;
 							Input._currentState["up"] = true;
-							this._lastInput = "up-right";
+							this._lastInput.push("up");
+							this._lastInput.push("right");
 						}
 						break;
 					case 3:
 						Input._currentState["left"] = true;
-						this._lastInput = "left";
+						this._lastInput.push("left");
 						break;
 					case 4:
 						break;
 					case 5:
 						Input._currentState["right"] = true;
-						this._lastInput = "right";
+						this._lastInput.push("right");
 						break;
 					case 6:
 						if (Parameters.enableDiagonalInput) {
 							Input._currentState["left"] = true;
 							Input._currentState["down"] = true;
-							this._lastInput = "down-left";
+							this._lastInput.push("down");
+							this._lastInput.push("left");
 						}
 						break;
 					case 7:
 						Input._currentState["down"] = true;
-						this._lastInput = "down";
+						this._lastInput.push("down");
 						break;
 					case 8:
 						if (Parameters.enableDiagonalInput) {
 							Input._currentState["down"] = true;
 							Input._currentState["right"] = true;
-							this._lastInput = "down-right";
+							this._lastInput.push("down");
+							this._lastInput.push("right");
 						}
 						break;
 					default:
@@ -708,9 +721,9 @@
 	};
 
 	Sprite_DirectionalPad.prototype.clearLastDirection = function () {
-		if (this._lastInput) {
-			this._lastInput.split("-").forEach(a => Input._currentState[a] = false);
-			this._lastInput = '';
+		if (this._lastInput.length > 0) {
+			this._lastInput.forEach(direction => Input._currentState[direction] = false);
+			this._lastInput = [];
 		}
 	};
 
@@ -1099,4 +1112,87 @@
 			}
 		}
 	}
+
+	if (Parameters.enableDPadDebugWindow) {
+
+	//=============================================================================
+	// Window_TouchInputTest
+	//=============================================================================
+	// The window to test what inputs are currently pressed on the D-Pad
+	//=============================================================================
+
+	function Window_TouchInputTest() {
+		this.initialize.apply(this, arguments);
+	}
+
+	Window_TouchInputTest.prototype = Object.create(Window_Base.prototype);
+	Window_TouchInputTest.prototype.constructor = Window_TouchInputTest;
+
+	Window_TouchInputTest.prototype.initialize = function() {
+		Window_Base.prototype.initialize.call(this, Graphics.width - 300, 0, 300, 200);
+		this._lastState = {up: false, right: false, down: false, left: false};
+		this.refresh();
+	};
+
+
+	Window_TouchInputTest.prototype.update = function() {
+		Window_Base.prototype.update.call(this);
+		if (this.stateHasChanged()) {
+			this.refresh();
+		}
+	};
+
+	Window_TouchInputTest.prototype.refresh = function() {
+		this.contents.clear();
+		this.drawText(`Up: ${Input._currentState["up"]}`, 6, 0);
+		this.drawText(`Right: ${Input._currentState["right"]}`, 6, this.lineHeight());
+		this.drawText(`Down: ${Input._currentState["down"]}`, 6, this.lineHeight() * 2);
+		this.drawText(`Left: ${Input._currentState["left"]}`, 6, this.lineHeight() * 3);
+	};
+
+	Window_TouchInputTest.prototype.stateHasChanged = function() {
+		if (this._lastState.up !== Input._currentState["up"]) {
+			this._lastState.up = Input._currentState["up"];
+			return true;
+		}
+		if (this._lastState.right !== Input._currentState["right"]) {
+			this._lastState.right = Input._currentState["right"];
+			return true;
+		}
+		if (this._lastState.down !== Input._currentState["down"]) {
+			this._lastState.down = Input._currentState["down"];
+			return true;
+		}
+		if (this._lastState.left !== Input._currentState["left"]) {
+			this._lastState.left = Input._currentState["left"];
+			return true;
+		}
+		return false;
+	}
+
+	const Scene_Map_createMapNameWindow = Scene_Map.prototype.createMapNameWindow;
+	Scene_Map.prototype.createMapNameWindow = function() {
+		this._touchInputTestWindow = new Window_TouchInputTest();
+		this.addChild(this._touchInputTestWindow);
+		Scene_Map_createMapNameWindow.call(this);
+	};
+
+	}
+	// end if Parameters.enableDPadDebugWindow
+
+	//=============================================================================
+	// Game_Map
+	//=============================================================================
+	// Help solve bug with stuck movement by clearing input on map transfer.
+	//=============================================================================
+
+	const Game_Map_setup = Game_Map.prototype.setup;
+	Game_Map.prototype.setup = function(mapId) {
+		Game_Map_setup.call(this, mapId);
+		delete Input._currentState["left"];
+		delete Input._currentState["right"];
+		delete Input._currentState["up"];
+		delete Input._currentState["down"];
+	};
+
 })();

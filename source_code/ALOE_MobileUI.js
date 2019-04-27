@@ -147,13 +147,16 @@
 * //=============================================================================
 * // Plugin Commands:
 * //=============================================================================
-* All plugin commands begin with MobileUI.
-* All plugin commands are not case sensitive (i.e. DPad is the same as dpad)
+* All plugin commands begin with VirtualButtons or MobileUI.
+* All plugin commands are not case sensitive 
+* (i.e. virtualbuttons is the same as VirtualButtons)
+* (i.e. DPad is the same as dpad)
 * 
 * //=============================================================================
 * hide: hides the specified button
 * //=============================================================================
 * Allowed first arguments:
+* -all
 * -DPad
 * -Control
 * -Any key button defined in the parameters
@@ -165,11 +168,13 @@
 * MobileUI hide DPad
 * mobileui hide Ok instant
 * MobileUI hide PageDown
+* virtualbuttons hide all
 * 
 * //=============================================================================
 * show: shows the specified button
 * //=============================================================================
 * Allowed first arguments:
+* -all
 * -DPad
 * -Control
 * -Any key button defined in the parameters
@@ -181,6 +186,7 @@
 * MobileUI show dpad
 * mobileui show ok
 * MobileUI show PageUp instant
+* virtualbuttons show all
 *
 * //=============================================================================
 * Diagonal Movement Parameter
@@ -204,8 +210,16 @@
 * //=============================================================================
 * Version History:
 * //=============================================================================
-* v2.0.0 (April 25 2019)
+* v2.0.0 (April 26 2019)
 * --Clears input state on transfer to mitigate stuck DPad input bug
+* --Improves clearing of input state each frame to mitigate bug
+* --Plugin command to change button opacity (WIP)
+* --Plugin command option to hide all buttons
+* --Plugin command option to show all buttons
+* --Delay parameter to fade-in (WIP)
+* --Option to use a "hot" image that shows when the button is pressed (WIP)
+* --Key buttons can trigger common events (WIP)
+* --Buttons hidden via plugin command will stay hidden until the show plugin command (WIP)
 * v1.4.0 (December 13 2018)
 * --Added ability to configure which buttons are affected by the "control" button
 *   Can be used to create dynamic menus.
@@ -483,14 +497,14 @@
 	//=============================================================================
 	// ImageManager
 	//=============================================================================
-	// Load and reserve mobile UI images.
+	// Load and reserve virtual button images.
 	//=============================================================================
 
-	ImageManager.loadMobileUI = function (filename, hue) {
+	ImageManager.loadVirtualButton = function (filename, hue) {
 		return this.loadBitmap('img/mobileUI/', filename, hue, true);
 	};
 
-	ImageManager.reserveMobileUI = function (filename, hue, reservationId) {
+	ImageManager.reserveVirtualButton = function (filename, hue, reservationId) {
 		return this.reserveBitmap('img/mobileUI/', filename, hue, true, reservationId);
 	};
 
@@ -508,9 +522,16 @@
 	Sprite_Button.prototype = Object.create(Sprite_Base.prototype);
 	Sprite_Button.prototype.constructor = Sprite_Button;
 
-	Sprite_Button.prototype.initialize = function (x, y, normalImage, soundEffect, vibratePattern) {
+	Sprite_Button.prototype.initialize = function (x, y, normalImage, soundEffect, vibratePattern, hotImage) {
 		Sprite_Base.prototype.initialize.call(this);
-		if (normalImage) { this.bitmap = ImageManager.loadMobileUI(normalImage); }
+		if (normalImage) { 
+			this.bitmap = ImageManager.loadVirtualButton(normalImage); 
+			this.normalImage = this.bitmap;
+		}
+		if (hotImage) {
+			this.hotImage = ImageManager.loadVirtualButton(hotImage);
+		}
+
 		if (soundEffect) { this._soundEffect = soundEffect; }
 		if (vibratePattern) {
 			if (!window.navigator.vibrate) {
@@ -530,6 +551,7 @@
 		this._velocity = new Point(null, null);
 		this._origin = new Point(x, y);
 		this._hiding = false;
+		this._showing = false;
 		this._duration = Parameters["fadeDuration"];
 		this.active = true;
 		this.z = 5;
@@ -548,7 +570,7 @@
 	Sprite_Button.prototype.updateVisibility = function () {
 		if (this._hiding && this.opacity > 0) {
 			this.opacity -= 255 / this._duration;
-		} else if (!this._hiding && this.opacity < 255) {
+		} else if (this._showing && this.opacity < 255) {
 			this.opacity += 255 / this._duration;
 		}
 	};
@@ -579,6 +601,7 @@
 
 	Sprite_Button.prototype.show = function () {
 		this._hiding = false;
+		this._showing = true;
 	};
 
 	Sprite_Button.prototype.hideInstant = function () {
@@ -589,6 +612,7 @@
 
 	Sprite_Button.prototype.showInstant = function () {
 		this._hiding = false;
+		this._showing = true;
 		this.opacity = 255;
 		this.active = true;
 	};
@@ -722,7 +746,7 @@
 
 	Sprite_DirectionalPad.prototype.clearLastDirection = function () {
 		if (this._lastInput.length > 0) {
-			this._lastInput.forEach(direction => Input._currentState[direction] = false);
+			this._lastInput.forEach(direction => delete Input._currentState[direction]);
 			this._lastInput = [];
 		}
 	};
@@ -830,10 +854,12 @@
 				this._keyButtons[buttonName].expand();
 			});
 		} else {
-			Object.values(this._keyButtons).forEach(button => {
-				button.show();
-				button.expand();
-			});
+			if (this._keyButtons) {
+				Object.values(this._keyButtons).forEach(button => {
+					button.show();
+					button.expand();
+				});
+			}
 		}
 		if (params.hideDPad && this._directionalPad) { 
 			this._directionalPad.show(); 
@@ -854,10 +880,12 @@
 				this._keyButtons[buttonName].collapse(this.x, this.y);
 			});
 		} else {
-			Object.values(this._keyButtons).forEach(button => {
-				button.hide();
-				button.collapse(this.x, this.y);
-			});
+			if (this._keyButtons) {
+				Object.values(this._keyButtons).forEach(button => {
+					button.hide();
+					button.collapse(this.x, this.y);
+				});
+			}
 		}
 		if (params.hideDPad && this._directionalPad) { 
 			this._directionalPad.hide(); 
@@ -1041,74 +1069,150 @@
 	// Plugin commands
 	//=============================================================================
 
+	function pluginCommandHideDpad(scene, args) {
+		if (scene._directionalPad) {
+			if (args[2] && args[2].toLowerCase() === 'instant') {
+				scene._directionalPad.hideInstant();
+			} else {
+				scene._directionalPad.hide();
+			}
+		}
+	}
+
+	function pluginCommandHideControl(scene, args) {
+		if (scene._controlButton) {
+			if (args[2] && args[2].toLowerCase() === 'instant') {
+				scene._controlButton.hideInstant();
+			} else {
+				scene._controlButton.hide();
+			}
+		}
+	}
+
+	function pluginCommandHideAllKeyButtons(scene, args) {
+		if (scene._keyButtons) {
+			if (args[2] && args[2].toLowerCase() === 'instant') {
+				Object.keys(scene._keyButtons).forEach(keyButton => 
+					scene._keyButtons[keyButton].hideInstant());
+			} else {
+				Object.keys(scene._keyButtons).forEach(keyButton => 
+					scene._keyButtons[keyButton].hide());
+			}
+		}
+	}
+
+	function pluginCommandHideKeyButton(scene, args) {
+		if (scene._keyButtons[args[1].toLowerCase()]) {
+			if (args[2] && args[2].toLowerCase() === 'instant') {
+				scene._keyButtons[args[1].toLowerCase()].hideInstant();
+			} else {
+				scene._keyButtons[args[1].toLowerCase()].hide();
+			}
+		}
+	}
+
+	function pluginCommandShowDpad(scene, args) {
+		if (scene._directionalPad) {
+			if (args[2] && args[2].toLowerCase() === 'instant') {
+				scene._directionalPad.showInstant();
+			} else {
+				scene._directionalPad.show();
+			}
+		}
+	}
+
+	function pluginCommandShowControl(scene, args) {
+		if (scene._controlButton) {
+			if (args[2] && args[2].toLowerCase() === 'instant') {
+				scene._controlButton.showInstant();
+			} else {
+				scene._controlButton.show();
+			}
+		}
+	}
+
+	function pluginCommandShowAllKeyButtons(scene, args) {
+		if (scene._keyButtons) {
+			if (args[2] && args[2].toLowerCase() === 'instant') {
+				Object.keys(scene._keyButtons).forEach(keyButton => 
+					scene._keyButtons[keyButton].showInstant());
+			} else {
+				Object.keys(scene._keyButtons).forEach(keyButton => 
+					scene._keyButtons[keyButton].show());
+			}
+		}
+	}
+
+	function pluginCommandShowKeyButton(scene, args) {
+		if (scene._keyButtons[args[1].toLowerCase()]) {
+			if (args[2] && args[2].toLowerCase() === 'instant') {
+				scene._keyButtons[args[1].toLowerCase()].showInstant();
+			} else {
+				scene._keyButtons[args[1].toLowerCase()].show();
+			}
+		}
+	}
+
 	Alias.Game_Interpreter_pluginCommand = Game_Interpreter.prototype.pluginCommand;
 	Game_Interpreter.prototype.pluginCommand = function (command, args) {
 		Alias.Game_Interpreter_pluginCommand.call(this, command, args);
-		if (command.toLowerCase() === "mobileui") {
+		if (command.toLowerCase() === "mobileui" || command.toLowerCase() === "virtualbuttons") {
 			const scene = SceneManager._scene;
 			switch (args[0].toLowerCase()) {
 				case "hide":
 					switch (args[1].toLowerCase()) {
 						case "dpad":
-							if (scene._directionalPad) {
-								if (args[2] && args[2].toLowerCase() === 'instant') {
-									scene._directionalPad.hideInstant();
-								} else {
-									scene._directionalPad.hide();
-								}
-							}
+							pluginCommandHideDpad(scene, args);
 							break;
 						case "control":
-							if (scene._controlButton) {
-								if (args[2] && args[2].toLowerCase() === 'instant') {
-									scene._controlButton.hideInstant();
-								} else {
-									scene._controlButton.hide();
-								}
-							}
+							pluginCommandHideControl(scene, args);
+							break;
+						case "all":
+							pluginCommandHideDpad(scene, args);
+							pluginCommandHideControl(scene, args);
+							pluginCommandHideAllKeyButtons(scene, args);
 							break;
 						default:
-							if (scene._keyButtons[args[1].toLowerCase()]) {
-								if (args[2] && args[2].toLowerCase() === 'instant') {
-									scene._keyButtons[args[1].toLowerCase()].hideInstant();
-								} else {
-									scene._keyButtons[args[1].toLowerCase()].hide();
-								}
-							}
+							pluginCommandHideKeyButton(scene, args);
 							break;
 					}
 					break;
 				case "show":
 					switch (args[1].toLowerCase()) {
 						case "dpad":
+							pluginCommandShowDpad(scene, args);
+							break;
+						case "control":
+							pluginCommandShowControl(scene, args);
+							break;
+						case "all":
+							pluginCommandShowDpad(scene, args);
+							pluginCommandShowControl(scene, args);
+							pluginCommandShowAllKeyButtons(scene, args);
+						default:
+							pluginCommandShowKeyButton(scene, args);
+							break;
+					}
+					break;
+				case "opacity":
+					switch (args[1].toLowerCase()) {
+						case "dpad":
 							if (scene._directionalPad) {
-								if (args[2] && args[2].toLowerCase() === 'instant') {
-									scene._directionalPad.showInstant();
-								} else {
-									scene._directionalPad.show();
-								}
+								scene._directionalPad.opacity = parseInt(args[2]);
 							}
 							break;
 						case "control":
 							if (scene._controlButton) {
-								if (args[2] && args[2].toLowerCase() === 'instant') {
-									scene._controlButton.showInstant();
-								} else {
-									scene._controlButton.show();
-								}
+								scene._controlButton.opacity = parseInt(args[2]);
 							}
 							break;
 						default:
 							if (scene._keyButtons[args[1].toLowerCase()]) {
-								if (args[2] && args[2].toLowerCase() === 'instant') {
-									scene._keyButtons[args[1].toLowerCase()].showInstant();
-								} else {
-									scene._keyButtons[args[1].toLowerCase()].show();
-								}
+								scene._keyButtons[args[1].toLowerCase()].opacity = parseInt(args[2]);
 							}
 							break;
+
 					}
-					break;
 			}
 		}
 	}

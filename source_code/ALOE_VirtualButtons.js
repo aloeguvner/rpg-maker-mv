@@ -24,6 +24,14 @@
 * @desc Duration of hiding the buttons (number of frames)
 * for the buttons to fade and un-fade.
 * @default 20
+* @type number
+*
+* @param fadeDelay
+* @text Fade Delay
+* @desc Delay before hiding and unhiding buttons (number
+* of frames)
+* @default 1
+* @type number
 *
 * @param disableTouchWindows
 * @text Disable Touch Selectable Windows
@@ -45,11 +53,17 @@
 * direction inputs are recorded. See info in help file.
 * @default false
 *
+* @param hideButtonsDuringDialogue
+* @text Hide Buttons During Dialogue
+* @type boolean
+* @desc Hide the virtual buttons during event dialogue.
+* @default true
+*
 * @param enableDPadDebugWindow
 * @text Enable DPad Debug Window
 * @type boolean
 * @desc Shows a window with the current D-Pad state. For 
-* plugin debugging only, don't enable
+* plugin debugging only.
 * @default false
 * 
 * @help
@@ -126,7 +140,7 @@
 * // Setup:
 * //=============================================================================
 * This plugin requires a new folder to be created within the project "img" folder.
-* The folder must be titled "mobileUI".
+* The folder must be titled "VirtualButtons".
 * Place all UI button images into this folder, and they can be accessed from the 
 * plugin parameters.
 *
@@ -147,7 +161,7 @@
 * //=============================================================================
 * // Plugin Commands:
 * //=============================================================================
-* All plugin commands begin with VirtualButtons or MobileUI.
+* All plugin commands begin with VirtualButtons or MobileUI (for backwards compatibility).
 * All plugin commands are not case sensitive 
 * (i.e. virtualbuttons is the same as VirtualButtons)
 * (i.e. DPad is the same as dpad)
@@ -189,6 +203,24 @@
 * virtualbuttons show all
 *
 * //=============================================================================
+* opacity: changes the opacity of the specified button
+* //=============================================================================
+*
+* Allowed first arguments:
+* -all
+* -DPad
+* -Control
+* -Any key button defined in the parameters
+*
+* Allowed second arguments:
+* -A number between 0 and 255 corresponding to the new opacity for the button
+*
+* Examples:
+* virtualbuttons opacity dpad 100
+* VirtualButtons opacity menu 200     (assuming 'menu' is a key button)
+* virtualbuttons opacity all 150
+*
+* //=============================================================================
 * Diagonal Movement Parameter
 * //=============================================================================
 *
@@ -210,16 +242,19 @@
 * //=============================================================================
 * Version History:
 * //=============================================================================
-* v2.0.0 (April 26 2019)
+* v2.0.0 (May 4 2019)
 * --Clears input state on transfer to mitigate stuck DPad input bug
 * --Improves clearing of input state each frame to mitigate bug
-* --Plugin command to change button opacity (WIP)
+* --Fix bug where the DPad would not clear the direction after a parallel event 
+*   checking for a input direction triggered a Show Choices event command
+* --Add plugin parameter to toggle whether the buttons are hidden during dialogue
+* --Plugin command to change button opacity
 * --Plugin command option to hide all buttons
 * --Plugin command option to show all buttons
-* --Delay parameter to fade-in (WIP)
-* --Option to use a "hot" image that shows when the button is pressed (WIP)
-* --Key buttons can trigger common events (WIP)
-* --Buttons hidden via plugin command will stay hidden until the show plugin command (WIP)
+* --Delay parameter to fade-in
+* --Option to use a "hot" image that shows when the button is pressed
+* --Key buttons can trigger common events
+* --Buttons hidden via plugin command will stay hidden until the show plugin command
 * v1.4.0 (December 13 2018)
 * --Added ability to configure which buttons are affected by the "control" button
 *   Can be used to create dynamic menus.
@@ -261,8 +296,16 @@
  * @param image
  * @text Image
  * @type file
- * @dir img/mobileUI
+ * @dir img/VirtualButtons
  * @desc File path for the D-Pad image
+ * @require 1
+ *
+ * @param hotImage
+ * @text Hot Image
+ * @type file
+ * @dir img/VirtualButtons
+ * @desc File path for the "Hot" button image
+ * This image shows while the dpad is being pressed
  * @require 1
  * 
  * @param activeScenes
@@ -326,8 +369,16 @@
  * @param image
  * @text Image
  * @type file
- * @dir img/mobileUI
+ * @dir img/VirtualButtons
  * @desc File path for the button image
+ * @require 1
+ * 
+ * @param hotImage
+ * @text Hot Image
+ * @type file
+ * @dir img/VirtualButtons
+ * @desc File path for the "Hot" button image
+ * This image shows while the button is being pressed
  * @require 1
  * 
  * @param activeScenes
@@ -357,6 +408,13 @@
  * @desc Sound Effect to play when button is pressed.
  * Depending on scenario, SE might already play. Test first.
  * 
+ * @param commonEvent
+ * @text Common Event
+ * @type number
+ * @desc Common Event to trigger when the button is pressed.
+ * @default 0
+ * @min 0
+ * 
  * @param customCode
  * @text Custom Code
  * @type note
@@ -375,7 +433,7 @@
  * @param image
  * @text Image
  * @type file
- * @dir img/mobileUI
+ * @dir img/VirtualButtons
  * @desc File path for the button image
  * @require 1
  * 
@@ -460,18 +518,21 @@
  * 
 */
 
+var ALOE = ALOE || {};
+
 (function () {
 	"use strict";
 
 	const Alias = {};
 	const Parameters = {};
+
 	//=============================================================================
 	// Utils
 	//=============================================================================
 	// Create a utility function to parse complex parameters.
 	//=============================================================================
 
-	Utils.recursiveParse = function (param) {
+	ALOE.recursiveParse = function (param) {
 		try {
 			return JSON.parse(param, function (key, value) {
 				try {
@@ -491,8 +552,8 @@
 	// Read and parse parameters into a locally scoped Parameters object.
 	//=============================================================================
 
-	Object.keys(PluginManager.parameters("ALOE_MobileUI")).forEach(a =>
-		Parameters[a] = Utils.recursiveParse(PluginManager.parameters("ALOE_MobileUI")[a]));
+	Object.keys(PluginManager.parameters("ALOE_VirtualButtons")).forEach(a =>
+		Parameters[a] = ALOE.recursiveParse(PluginManager.parameters("ALOE_VirtualButtons")[a]));
 
 	//=============================================================================
 	// ImageManager
@@ -501,28 +562,28 @@
 	//=============================================================================
 
 	ImageManager.loadVirtualButton = function (filename, hue) {
-		return this.loadBitmap('img/mobileUI/', filename, hue, true);
+		return this.loadBitmap('img/VirtualButtons/', filename, hue, true);
 	};
 
 	ImageManager.reserveVirtualButton = function (filename, hue, reservationId) {
-		return this.reserveBitmap('img/mobileUI/', filename, hue, true, reservationId);
+		return this.reserveBitmap('img/VirtualButtons/', filename, hue, true, reservationId);
 	};
 
 	//=============================================================================
-	// Sprite_Button
+	// Sprite_VirtualButton
 	//=============================================================================
 	// Sprite for the UI button(s)
 	// Parent class for Sprite_DirectionalPad, Sprite_KeyButton, Sprite_ControlButton
 	//=============================================================================
 
-	function Sprite_Button() {
+	function Sprite_VirtualButton() {
 		this.initialize.apply(this, arguments);
 	}
 
-	Sprite_Button.prototype = Object.create(Sprite_Base.prototype);
-	Sprite_Button.prototype.constructor = Sprite_Button;
+	Sprite_VirtualButton.prototype = Object.create(Sprite_Base.prototype);
+	Sprite_VirtualButton.prototype.constructor = Sprite_VirtualButton;
 
-	Sprite_Button.prototype.initialize = function (x, y, normalImage, soundEffect, vibratePattern, hotImage) {
+	Sprite_VirtualButton.prototype.initialize = function (x, y, normalImage, soundEffect, vibratePattern, hotImage) {
 		Sprite_Base.prototype.initialize.call(this);
 		if (normalImage) { 
 			this.bitmap = ImageManager.loadVirtualButton(normalImage); 
@@ -539,7 +600,7 @@
 			} else if (typeof vibratePattern === 'number') {
 				this._vibratePattern = vibratePattern;
 			} else {
-				this._vibratePattern = vibratePattern.split(',').map(num => parseInt(num));
+				this._vibratePattern = vibratePattern.split(',').map(Number);
 			}
 		}
 		if (isNaN(x)) { x = eval(x); }
@@ -553,33 +614,58 @@
 		this._hiding = false;
 		this._showing = false;
 		this._duration = Parameters["fadeDuration"];
+		this._delay = Parameters["fadeDelay"];
+		this._delayCounter = 0;
 		this.active = true;
+		this._pluginHidden = false;
 		this.z = 5;
 	};
 
-	Sprite_Button.prototype.update = function () {
+	Sprite_VirtualButton.prototype.update = function () {
 		Sprite_Base.prototype.update.call(this);
 		if (this.active) { this.updateTouchInput(); }
+		if (this.active && this.updateHotImage) { this.updateHotImage(); }
 		if (this.moving) { this.updatePosition(); }
 		if (!this.active) { this.updateActive(); }
 	};
 
-	Sprite_Button.prototype.updateTouchInput = function () {
+	Sprite_VirtualButton.prototype.updateTouchInput = function () {
 	};
 
-	Sprite_Button.prototype.updateVisibility = function () {
+	Sprite_VirtualButton.prototype.updateHotImage = function() {
+		if (TouchInput.isPressed()) {
+			const point = new Point(TouchInput.x, TouchInput.y);
+			if (this.containsPoint(point)) {
+				if (this.hotImage) { this.bitmap = this.hotImage; }
+			}
+		} else {
+			if (this.bitmap !== this.normalImage) { this.bitmap = this.normalImage; } 
+		}
+	}
+
+	Sprite_VirtualButton.prototype.updateVisibility = function () {
 		if (this._hiding && this.opacity > 0) {
-			this.opacity -= 255 / this._duration;
+			if (this._delayCounter < this._delay) {
+				this._delayCounter++;
+			} else {
+				this.opacity -= 255 / this._duration;
+				if (this.opacity <= 0) this._delayCounter = 0;
+			}
 		} else if (this._showing && this.opacity < 255) {
-			this.opacity += 255 / this._duration;
+			if (this._delayCounter < this._delay) {
+				this._delayCounter++;
+			} else {
+				this.opacity += 255 / this._duration;
+				if (this.opacity >= 255) this._delayCounter = 0;
+			}
 		}
 	};
 
-	Sprite_Button.prototype.updateActive = function () {
+	Sprite_VirtualButton.prototype.updateActive = function () {
 		if (this.opacity === 255) { this.active = true; }
 	};
 
-	Sprite_Button.prototype.updatePosition = function () {
+	Sprite_VirtualButton.prototype.updatePosition = function () {
 		this.x += this._velocity.x;
 		this.y += this._velocity.y;
 
@@ -594,30 +680,32 @@
 		}
 	};
 
-	Sprite_Button.prototype.hide = function () {
+	Sprite_VirtualButton.prototype.hide = function () {
 		this._hiding = true;
 		this.active = false;
 	};
 
-	Sprite_Button.prototype.show = function () {
+	Sprite_VirtualButton.prototype.show = function () {
 		this._hiding = false;
 		this._showing = true;
 	};
 
-	Sprite_Button.prototype.hideInstant = function () {
+	Sprite_VirtualButton.prototype.hideInstant = function () {
 		this._hiding = true;
 		this.opacity = 0;
 		this.active = false;
+		this._delayCounter = this._delay;
 	};
 
-	Sprite_Button.prototype.showInstant = function () {
+	Sprite_VirtualButton.prototype.showInstant = function () {
 		this._hiding = false;
 		this._showing = true;
 		this.opacity = 255;
 		this.active = true;
+		this._delayCounter = this._delay;
 	};
 
-	Sprite_Button.prototype.collapse = function (x, y) {
+	Sprite_VirtualButton.prototype.collapse = function (x, y) {
 		this._destination.x = x;
 		this._destination.y = y;
 		this._start.x = this.x;
@@ -633,7 +721,7 @@
 		this.moving = true;
 	};
 
-	Sprite_Button.prototype.expand = function () {
+	Sprite_VirtualButton.prototype.expand = function () {
 		this._destination.x = this._origin.x;
 		this._destination.y = this._origin.y;
 		this._start.x = this.x;
@@ -649,7 +737,7 @@
 		this.moving = true;
 	};
 
-	Sprite_Button.prototype.absDistance = function (pos1, pos2) {
+	Sprite_VirtualButton.prototype.absDistance = function (pos1, pos2) {
 		return Math.sqrt(Math.pow(pos1.x - pos2.x, 2) + Math.pow(pos1.y - pos2.y, 2));
 	};
 
@@ -663,11 +751,11 @@
 		this.initialize.apply(this, arguments);
 	}
 
-	Sprite_DirectionalPad.prototype = Object.create(Sprite_Button.prototype);
+	Sprite_DirectionalPad.prototype = Object.create(Sprite_VirtualButton.prototype);
 	Sprite_DirectionalPad.prototype.constructor = Sprite_DirectionalPad;
 
-	Sprite_DirectionalPad.prototype.initialize = function (x, y, image, soundEffect) {
-		Sprite_Button.prototype.initialize.call(this, x, y, image, soundEffect);
+	Sprite_DirectionalPad.prototype.initialize = function (x, y, image, hotImage, soundEffect) {
+		Sprite_VirtualButton.prototype.initialize.call(this, x, y, image, soundEffect, undefined, hotImage);
 		this._lastInput = [];
 		this._hiding = false;
 	};
@@ -763,16 +851,17 @@
 		this.initialize.apply(this, arguments);
 	}
 
-	Sprite_KeyButton.prototype = Object.create(Sprite_Button.prototype);
+	Sprite_KeyButton.prototype = Object.create(Sprite_VirtualButton.prototype);
 	Sprite_KeyButton.prototype.constructor = Sprite_KeyButton;
 
-	Sprite_KeyButton.prototype.initialize = function (x, y, image, soundEffect, inputTrigger, customCode, vibratePattern, inputMethod = 0) {
-		Sprite_Button.prototype.initialize.call(this, x, y, image, soundEffect, vibratePattern);
+	Sprite_KeyButton.prototype.initialize = function (x, y, image, hotImage, soundEffect, inputTrigger, customCode, vibratePattern, inputMethod = 0, commonEvent = 0) {
+		Sprite_VirtualButton.prototype.initialize.call(this, x, y, image, soundEffect, vibratePattern, hotImage);
 		if (inputTrigger) { this._inputTrigger = inputTrigger; }
 		if (customCode) {
 			this._customCode = customCode;
 			this._customFunction = new Function(customCode).bind(SceneManager._scene);
 		}
+		this._commonEvent = commonEvent;
 		this._inputMethod = inputMethod;
 	};
 
@@ -800,6 +889,7 @@
 				if (this._soundEffect) { AudioManager.playSe(this._soundEffect); }
 				if (this._vibratePattern) { window.navigator.vibrate(this._vibratePattern); }
 				if (this._customFunction) { this._customFunction(); }
+				if (this._commonEvent && $gameTemp) { $gameTemp.reserveCommonEvent(this._commonEvent); }
 				if (this._inputTrigger) { Input._currentState[this._inputTrigger] = true; }
 			} else {
 				Input._currentState[this._inputTrigger] = false;
@@ -819,11 +909,11 @@
 		this.initialize.apply(this, arguments);
 	}
 
-	Sprite_ControlButton.prototype = Object.create(Sprite_Button.prototype);
+	Sprite_ControlButton.prototype = Object.create(Sprite_VirtualButton.prototype);
 	Sprite_ControlButton.prototype.constructor = Sprite_ControlButton;
 
 	Sprite_ControlButton.prototype.initialize = function (x, y, image, soundEffect) {
-		Sprite_Button.prototype.initialize.call(this, x, y, image, soundEffect);
+		Sprite_VirtualButton.prototype.initialize.call(this, x, y, image, soundEffect);
 		this._inputTrigger = "control";
 		this._buttonsHidden = false;
 	};
@@ -932,9 +1022,9 @@
 				const x = params.x;
 				const y = params.y;
 				const image = params.image || "";
+				const hotImage = params.hotImage || "";
 				const soundEffect = params.soundEffect;
-				this._directionalPad = new Sprite_DirectionalPad(x, y, image, soundEffect);
-
+				this._directionalPad = new Sprite_DirectionalPad(x, y, image, hotImage, soundEffect);
 				this.addChild(this._directionalPad);
 			}
 		}
@@ -949,7 +1039,7 @@
 					if (params[i].activeScenes.length > 0 && params[i].activeScenes.contains(this.constructor)) {
 						const a = params[i];
 						this._keyButtons[a.name.toLowerCase()] =
-							new Sprite_KeyButton(a.x, a.y, a.image, a.soundEffect, a.inputTrigger.toLowerCase(), a.customCode, a.vibratePattern, a.inputMethod);
+							new Sprite_KeyButton(a.x, a.y, a.image, a.hotImage, a.soundEffect, a.inputTrigger.toLowerCase(), a.customCode, a.vibratePattern, a.inputMethod, a.commonEvent);
 						this.addChild(this._keyButtons[a.name.toLowerCase()]);
 					}
 				}
@@ -973,16 +1063,20 @@
 		}
 	};
 
-	Scene_Base.prototype.hideMobileUI = function () {
+	Scene_Base.prototype.hideVirtualButtons = function () {
 		if (this._directionalPad) { this._directionalPad.hide(); }
 		if (this._keyButtons) { Object.keys(this._keyButtons).forEach(a => this._keyButtons[a].hide()); }
 		if (this._controlButton) { this._controlButton.hide(); }
 	};
 
-	Scene_Base.prototype.showMobileUI = function () {
-		if (this._directionalPad) { this._directionalPad.show(); }
-		if (this._keyButtons) { Object.keys(this._keyButtons).forEach(a => this._keyButtons[a].show()); }
-		if (this._controlButton) { this._controlButton.show(); }
+	Scene_Base.prototype.showVirtualButtons = function () {
+		if (this._directionalPad && !this._directionalPad._pluginHidden) { this._directionalPad.show(); }
+		if (this._keyButtons) { 
+			Object.keys(this._keyButtons).forEach(button => {
+				if (!this._keyButtons[button]._pluginHidden) this._keyButtons[button].show();
+			});
+		}
+		if (this._controlButton && !this._controlButton._pluginHidden) { this._controlButton.show(); }
 	};
 
 	Alias.Scene_Base_terminate = Scene_Base.prototype.terminate;
@@ -1047,9 +1141,12 @@
 	// Control UI visibility when the dialogue window is activated.
 	//=============================================================================
 
+	if (Parameters.hideButtonsDuringDialogue) {
+
 	Alias.Window_Message_startMessage = Window_Message.prototype.startMessage;
 	Window_Message.prototype.startMessage = function () {
-		SceneManager._scene.hideMobileUI();
+		SceneManager._scene.hideVirtualButtons();
+		ALOE.clearDpadInput();
 		Alias.Window_Message_startMessage.call(this);
 	};
 
@@ -1059,9 +1156,11 @@
 		if (SceneManager._scene._controlButton && SceneManager._scene._controlButton._buttonsHidden) {
 			SceneManager._scene._controlButton.show();
 		} else {
-			SceneManager._scene.showMobileUI();
+			SceneManager._scene.showVirtualButtons();
 		}
 	};
+
+	}
 
 	//=============================================================================
 	// Game_Interpreter
@@ -1076,6 +1175,7 @@
 			} else {
 				scene._directionalPad.hide();
 			}
+			scene._directionalPad._pluginHidden = true;
 		}
 	}
 
@@ -1086,17 +1186,22 @@
 			} else {
 				scene._controlButton.hide();
 			}
+			scene._controlButton._pluginHidden = true;
 		}
 	}
 
 	function pluginCommandHideAllKeyButtons(scene, args) {
 		if (scene._keyButtons) {
 			if (args[2] && args[2].toLowerCase() === 'instant') {
-				Object.keys(scene._keyButtons).forEach(keyButton => 
-					scene._keyButtons[keyButton].hideInstant());
+				Object.keys(scene._keyButtons).forEach(keyButton => {
+					scene._keyButtons[keyButton].hideInstant();
+					scene._keyButtons[keyButton]._pluginHidden = true;
+				});
 			} else {
-				Object.keys(scene._keyButtons).forEach(keyButton => 
-					scene._keyButtons[keyButton].hide());
+				Object.keys(scene._keyButtons).forEach(keyButton =>  {
+					scene._keyButtons[keyButton].hide();
+					scene._keyButtons[keyButton]._pluginHidden = true;
+				});
 			}
 		}
 	}
@@ -1108,6 +1213,7 @@
 			} else {
 				scene._keyButtons[args[1].toLowerCase()].hide();
 			}
+			scene._keyButtons[args[1].toLowerCase()]._pluginHidden = true;
 		}
 	}
 
@@ -1118,6 +1224,7 @@
 			} else {
 				scene._directionalPad.show();
 			}
+			scene._directionalPad._pluginHidden = false;
 		}
 	}
 
@@ -1128,17 +1235,22 @@
 			} else {
 				scene._controlButton.show();
 			}
+			scene._controlButton._pluginHidden = false;
 		}
 	}
 
 	function pluginCommandShowAllKeyButtons(scene, args) {
 		if (scene._keyButtons) {
 			if (args[2] && args[2].toLowerCase() === 'instant') {
-				Object.keys(scene._keyButtons).forEach(keyButton => 
-					scene._keyButtons[keyButton].showInstant());
+				Object.keys(scene._keyButtons).forEach(keyButton => {
+					scene._keyButtons[keyButton].showInstant();
+					scene._keyButtons[keyButton]._pluginHidden = false;
+				});
 			} else {
-				Object.keys(scene._keyButtons).forEach(keyButton => 
-					scene._keyButtons[keyButton].show());
+				Object.keys(scene._keyButtons).forEach(keyButton => {
+					scene._keyButtons[keyButton].show();
+					scene._keyButtons[keyButton]._pluginHidden = false;
+				});
 			}
 		}
 	}
@@ -1150,7 +1262,31 @@
 			} else {
 				scene._keyButtons[args[1].toLowerCase()].show();
 			}
+			scene._keyButtons[args[1].toLowerCase()]._pluginHidden = false;
 		}
+	}
+
+	function pluginCommandOpacityDpad(scene, args) {
+		if (scene._directionalPad) {
+			scene._directionalPad.opacity = parseInt(args[2]);
+		}
+	}
+
+	function pluginCommandOpacityControlButton(scene, args) {
+		if (scene._controlButton) {
+			scene._controlButton.opacity = parseInt(args[2]);
+		}
+	}
+
+	function pluginCommandOpacityKeyButton(scene, args) {
+		if (scene._keyButtons[args[1].toLowerCase()]) {
+			scene._keyButtons[args[1].toLowerCase()].opacity = parseInt(args[2]);
+		}
+	}
+
+	function pluginCommandOpacityAllKeyButtons(scene, args) {
+		Object.keys(scene._keyButtons).forEach(keyButton => 
+			scene._keyButtons[keyButton].opacity = parseInt(args[2]));
 	}
 
 	Alias.Game_Interpreter_pluginCommand = Game_Interpreter.prototype.pluginCommand;
@@ -1197,21 +1333,18 @@
 				case "opacity":
 					switch (args[1].toLowerCase()) {
 						case "dpad":
-							if (scene._directionalPad) {
-								scene._directionalPad.opacity = parseInt(args[2]);
-							}
+							pluginCommandOpacityDpad(scene, args);
 							break;
 						case "control":
-							if (scene._controlButton) {
-								scene._controlButton.opacity = parseInt(args[2]);
-							}
+							pluginCommandOpacityControlButton(scene, args);
 							break;
+						case "all":
+							pluginCommandOpacityDpad(scene, args);
+							pluginCommandOpacityControlButton(scene, args);
+							pluginCommandOpacityAllKeyButtons(scene, args);
 						default:
-							if (scene._keyButtons[args[1].toLowerCase()]) {
-								scene._keyButtons[args[1].toLowerCase()].opacity = parseInt(args[2]);
-							}
+							pluginCommandOpacityKeyButton(scene, args);
 							break;
-
 					}
 			}
 		}
@@ -1237,7 +1370,6 @@
 		this._lastState = {up: false, right: false, down: false, left: false};
 		this.refresh();
 	};
-
 
 	Window_TouchInputTest.prototype.update = function() {
 		Window_Base.prototype.update.call(this);
@@ -1293,10 +1425,179 @@
 	const Game_Map_setup = Game_Map.prototype.setup;
 	Game_Map.prototype.setup = function(mapId) {
 		Game_Map_setup.call(this, mapId);
+		ALOE.clearDpadInput();
+	};
+
+	ALOE.clearDpadInput = function() {
 		delete Input._currentState["left"];
 		delete Input._currentState["right"];
 		delete Input._currentState["up"];
 		delete Input._currentState["down"];
 	};
+
+	//==============================================================================
+	// Array.prototype.includes
+	// Array.prototype.find
+	//==============================================================================
+	// Polyfill for old versions of MV (1.5 and earlier)
+	//==============================================================================
+
+	// https://tc39.github.io/ecma262/#sec-array.prototype.includes
+	if (!Array.prototype.includes) {
+		Object.defineProperty(Array.prototype, 'includes', {
+		value: function(valueToFind, fromIndex) {
+	
+			if (this == null) {
+			throw new TypeError('"this" is null or not defined');
+			}
+	
+			// 1. Let O be ? ToObject(this value).
+			var o = Object(this);
+	
+			// 2. Let len be ? ToLength(? Get(O, "length")).
+			var len = o.length >>> 0;
+	
+			// 3. If len is 0, return false.
+			if (len === 0) {
+			return false;
+			}
+	
+			// 4. Let n be ? ToInteger(fromIndex).
+			//    (If fromIndex is undefined, this step produces the value 0.)
+			var n = fromIndex | 0;
+	
+			// 5. If n ≥ 0, then
+			//  a. Let k be n.
+			// 6. Else n < 0,
+			//  a. Let k be len + n.
+			//  b. If k < 0, let k be 0.
+			var k = Math.max(n >= 0 ? n : len - Math.abs(n), 0);
+	
+			function sameValueZero(x, y) {
+			return x === y || (typeof x === 'number' && typeof y === 'number' && isNaN(x) && isNaN(y));
+			}
+	
+			// 7. Repeat, while k < len
+			while (k < len) {
+			// a. Let elementK be the result of ? Get(O, ! ToString(k)).
+			// b. If SameValueZero(valueToFind, elementK) is true, return true.
+			if (sameValueZero(o[k], valueToFind)) {
+				return true;
+			}
+			// c. Increase k by 1. 
+			k++;
+			}
+	
+			// 8. Return false
+			return false;
+		}
+		});
+	}
+
+	// https://tc39.github.io/ecma262/#sec-array.prototype.find
+	if (!Array.prototype.find) {
+		Object.defineProperty(Array.prototype, 'find', {
+		value: function(predicate) {
+		// 1. Let O be ? ToObject(this value).
+			if (this == null) {
+			throw new TypeError('"this" is null or not defined');
+			}
+	
+			var o = Object(this);
+	
+			// 2. Let len be ? ToLength(? Get(O, "length")).
+			var len = o.length >>> 0;
+	
+			// 3. If IsCallable(predicate) is false, throw a TypeError exception.
+			if (typeof predicate !== 'function') {
+			throw new TypeError('predicate must be a function');
+			}
+	
+			// 4. If thisArg was supplied, let T be thisArg; else let T be undefined.
+			var thisArg = arguments[1];
+	
+			// 5. Let k be 0.
+			var k = 0;
+	
+			// 6. Repeat, while k < len
+			while (k < len) {
+			// a. Let Pk be ! ToString(k).
+			// b. Let kValue be ? Get(O, Pk).
+			// c. Let testResult be ToBoolean(? Call(predicate, T, « kValue, k, O »)).
+			// d. If testResult is true, return kValue.
+			var kValue = o[k];
+			if (predicate.call(thisArg, kValue, k, o)) {
+				return kValue;
+			}
+			// e. Increase k by 1.
+			k++;
+			}
+	
+			// 7. Return undefined.
+			return undefined;
+		},
+		configurable: true,
+		writable: true
+		});
+	}
+
+	//==============================================================================
+	// Swap Plugin Parameters
+	//==============================================================================
+	// If both ALOE_MobileUI (old name) and ALOE_VirtualButtons (new name) are ON,
+	// then copy the plugin parameters over. Also copy images from img/mobileui to 
+	// img/VirtualButtons.
+	//==============================================================================
+
+	if (!Utils.isOptionValid('test') && PluginManager._scripts.includes("ALOE_MobileUI")) {
+		console.error("Conflicting version of ALOE_VirtualButtons (ALOE_MobileUI) found.");
+	}
+	if (Utils.isOptionValid('test') && PluginManager._scripts.includes("ALOE_MobileUI")) {
+		nw.Window.get().showDevTools();
+		const fs = require('fs');
+
+		console.log("Both ALOE_VirtualButtons and ALOE_MobileUI are activated.");
+		console.log("Initiating procedure to copy plugin parameters and images...");
+
+		console.log("Copying plugin parameters...");
+
+		const pluginsjs = fs.readFileSync('js/plugins.js', 'utf-8');
+		
+		const grabParametersRegex = /ALOE_MobileUI.+"parameters":(.+)},?$/m;
+		const match = pluginsjs.match(grabParametersRegex);
+		if (match && match[1]) {
+			const mobileUIParameters = match[1];
+			const replaceParametersRegex = /(ALOE_VirtualButtons.+"parameters":)(.+)(},?$)/m;
+			let trailingComma = ',';
+			// If it's the last plugin in the list, no trailing comma
+			if (PluginManager._scripts[PluginManager._scripts.length - 1] === 'ALOE_VirtualButtons') {
+				trailingComma = '';
+			}
+			const newPluginsjs = pluginsjs.replace(replaceParametersRegex, `$1${mobileUIParameters}}${trailingComma}`);
+			fs.writeFileSync('js/plugins.js', newPluginsjs);
+		} else {
+			console.error("Could not locate ALOE_MobileUI parameters.");
+		}
+
+		console.log("Copying plugin images...");
+		
+		// Create Image Directory
+		if (!fs.existsSync('img/VirtualButtons')) {
+			fs.mkdirSync('img/VirtualButtons');
+		}
+
+		if (fs.existsSync('img/mobileUI')) {
+			fs.readdirSync('img/mobileUI').forEach(image => fs.copyFileSync(`img/mobileUI/${image}`, `img/VirtualButtons/${image}`));
+		} else {
+			console.error('Unable to copy from img/mobileUI to img/VirtualButtons. img/mobileUI does not exist');
+		}
+
+		console.log("Plugin parameters and images copy successfully completed!");
+		console.log("============ Instructions ============\n");
+		console.log("1. Close the MV editor. If you press 'save' or open the Plugin Manager, it will undo the copying of the plugin parameters.");
+		console.log("2. Verify the images were copied from img/mobileUI to img/VirtualButtons then you can remove the img/mobileUI folder");
+		console.log("3. Open the MV editor again, go to the Plugin Manager, right-click on ALOE_VirtualButtons and press \"Refresh\".");
+		console.log("4. Verify the plugin parameters were copied over and then you can remove ALOE_MobileUI.");
+	}
 
 })();

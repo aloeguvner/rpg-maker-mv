@@ -244,6 +244,8 @@
 * //=============================================================================
 * Version History:
 * //=============================================================================
+* v2.0.1 (May 13 2019)
+* --Fix bug where DPad got stuck in menus
 * v2.0.0 (May 4 2019)
 * --Clears input state on transfer to mitigate stuck DPad input bug
 * --Improves clearing of input state each frame to mitigate bug
@@ -1617,12 +1619,20 @@ var ALOE = ALOE || {};
   // Help solve bug with stuck movement by clearing input on map transfer.
   //=============================================================================
 
+  /*const Game_Map_setup = Game_Map.prototype.setup;
+  Game_Map.prototype.setup = function(mapId) {
+  	Game_Map_setup.call(this, mapId);
+  	ALOE.clearDpadInput();
+  };*/
 
-  var Game_Map_setup = Game_Map.prototype.setup;
 
-  Game_Map.prototype.setup = function (mapId) {
-    Game_Map_setup.call(this, mapId);
-    ALOE.clearDpadInput();
+  var Game_Player_performTransfer = Game_Player.prototype.performTransfer;
+
+  Game_Player.prototype.performTransfer = function () {
+    if (this.isTransferring()) {
+      Game_Player_performTransfer.call(this);
+      ALOE.clearDpadInput();
+    }
   };
 
   ALOE.clearDpadInput = function () {

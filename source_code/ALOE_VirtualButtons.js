@@ -1,5 +1,5 @@
 /*:
-* @plugindesc v2.0.0 Creates buttons on the screen for touch input
+* @plugindesc v2.0.1 Creates buttons on the screen for touch input
 * @author Aloe Guvner
 *
 * 
@@ -758,7 +758,7 @@ var ALOE = ALOE || {};
 
 	Sprite_DirectionalPad.prototype.initialize = function (x, y, image, hotImage, soundEffect) {
 		Sprite_VirtualButton.prototype.initialize.call(this, x, y, image, soundEffect, undefined, hotImage);
-		this._lastInput = [];
+		this._lastInput = "";
 		this._hiding = false;
 	};
 
@@ -774,50 +774,46 @@ var ALOE = ALOE || {};
 						if (Parameters.enableDiagonalInput) {
 							Input._currentState["up"] = true;
 							Input._currentState["left"] = true;
-							this._lastInput.push("up");
-							this._lastInput.push("left");
+							this._lastInput = "up-left";
 						}
 						break;
 					case 1:
 						Input._currentState["up"] = true;
-						this._lastInput.push("up");
+						this._lastInput = "up";
 						break;
 					case 2:
 						if (Parameters.enableDiagonalInput) {
 							Input._currentState["right"] = true;
 							Input._currentState["up"] = true;
-							this._lastInput.push("up");
-							this._lastInput.push("right");
+							this._lastInput = "up-right";
 						}
 						break;
 					case 3:
 						Input._currentState["left"] = true;
-						this._lastInput.push("left");
+						this._lastInput = "left";
 						break;
 					case 4:
 						break;
 					case 5:
 						Input._currentState["right"] = true;
-						this._lastInput.push("right");
+						this._lastInput = "right";
 						break;
 					case 6:
 						if (Parameters.enableDiagonalInput) {
 							Input._currentState["left"] = true;
 							Input._currentState["down"] = true;
-							this._lastInput.push("down");
-							this._lastInput.push("left");
+							this._lastInput = "down-left";
 						}
 						break;
 					case 7:
 						Input._currentState["down"] = true;
-						this._lastInput.push("down");
+						this._lastInput = "down";
 						break;
 					case 8:
 						if (Parameters.enableDiagonalInput) {
 							Input._currentState["down"] = true;
 							Input._currentState["right"] = true;
-							this._lastInput.push("down");
-							this._lastInput.push("right");
+							this._lastInput = "down-right";
 						}
 						break;
 					default:
@@ -835,9 +831,9 @@ var ALOE = ALOE || {};
 	};
 
 	Sprite_DirectionalPad.prototype.clearLastDirection = function () {
-		if (this._lastInput.length > 0) {
-			this._lastInput.forEach(direction => delete Input._currentState[direction]);
-			this._lastInput = [];
+		if (this._lastInput) {
+			this._lastInput.split("-").forEach(direction => Input._currentState[direction] = false);
+			this._lastInput = "";
 		}
 	};
 
@@ -1419,16 +1415,10 @@ var ALOE = ALOE || {};
 	// end if Parameters.enableDPadDebugWindow
 
 	//=============================================================================
-	// Game_Map
+	// Game_Player
 	//=============================================================================
 	// Help solve bug with stuck movement by clearing input on map transfer.
 	//=============================================================================
-
-	/*const Game_Map_setup = Game_Map.prototype.setup;
-	Game_Map.prototype.setup = function(mapId) {
-		Game_Map_setup.call(this, mapId);
-		ALOE.clearDpadInput();
-	};*/
 
 	const Game_Player_performTransfer = Game_Player.prototype.performTransfer;
 	Game_Player.prototype.performTransfer = function() {

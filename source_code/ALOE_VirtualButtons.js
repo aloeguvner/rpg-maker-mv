@@ -651,7 +651,10 @@ var ALOE = ALOE || {};
 				this._delayCounter++;
 			} else {
 				this.opacity -= 255 / this._duration;
-				if (this.opacity <= 0) this._delayCounter = 0;
+				if (this.opacity <= 0) {
+					this._delayCounter = 0;
+					this._showing = false;
+				}
 			}
 		} else if (this._showing && this.opacity < 255) {
 			if (this._delayCounter < this._delay) {

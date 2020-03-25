@@ -4,6 +4,11 @@
 [Aloe Guvner Original Plugins](https://github.com/aloeguvner/rpg-maker-mv#aloe-guvner-original-plugins)\
 [YEP Extensions](https://github.com/aloeguvner/rpg-maker-mv#yep-extensions)
 
+## Terms of Use
+
+MIT license.
+No attribution or credit required.
+
 ## Instructions
 
 ### How to download
@@ -29,12 +34,6 @@ For any issues or feature requests for these plugins, I encourage you to open an
 * Log of the console (press F8 during playtest)
 
 ## Aloe Guvner Original Plugins
-
-### Terms of Use
-
-The following original plugins are free for use in both commercial and non-commercial games.
-Credit is required either in the game, or in a text file which is included along with the game.
-Credit: Aloe Guvner
 
 ### Aloe Guvner Plugin Links
 
@@ -116,7 +115,7 @@ Any event with a graphic set to a tileset tile that is marked with the "counter"
 
 ### Terms of Use
 
-The following YEP extensions are released under the [MIT License](https://opensource.org/licenses/MIT). This means that no attribution/credits are required, these extension plugins are freely available for use.
+You must follow all the terms of use of Yanfly Engine Plugins.
 
 ### YEP Extension Plugin Links
 
